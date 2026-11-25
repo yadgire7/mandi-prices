@@ -1,0 +1,249 @@
+# Mandis and crops for the Shetkari Shala daily mandi price post.
+#
+# Names must match the data source exactly, or a filter silently misses.
+# Every name below was confirmed by the Phase 0 probe on 25 Nov 2026 against
+# data.gov.in's variety-wise resource (data/phase0/2026-11-25_1127/report.md).
+# Matching ignores case and extra spaces: data.gov.in writes "APMC Lasalgaon "
+# with a trailing space and "APMC  Latur" with two.
+#
+# No variety is pinned: posts and pages show every variety and grade the API
+# returns. Each mandi's `crops` list is what the Phase 0 probe checks; the
+# WhatsApp post uses `headline_crops` below.
+
+state: Maharashtra
+
+# How often the pipeline runs. GitHub reads its schedule only from the
+# workflow file, so Phase 3 adds a test that fails if the cron line there
+# does not match these values.
+schedule:
+  every_hours: 6          # 6 -> 06:00, 12:00, 18:00 and 00:00 IST
+  first_run_ist: "06:00"  # this run always produces a post
+
+# Crops shown in the WhatsApp post, at every tracked mandi that reports them,
+# with every variety the API returns. The district pages show all crops.
+headline_crops: [cotton, soybean, onion, wheat, tur]
+
+crops:
+  onion: ["Onion"]
+  tomato: ["Tomato"]
+  grapes: ["Grapes"]
+  soybean: ["Soyabean"]
+  cotton: ["Cotton"]
+  tur: ["Red gram/Arhar/Tur(whole)"]
+  chana: ["Bengal Gram(Gram)(Whole)"]
+  wheat: ["Wheat"]
+  pomegranate: ["Pomegranate"]
+  jowar: ["Jowar(Sorghum)"]
+  turmeric: ["Turmeric"]
+  maize: ["Maize"]
+  banana: ["Banana"]
+  orange: ["Orange"]
+
+# Pairs marked "gap" reported no price between 19 and 25 Nov 2026. They stay
+# until you decide to drop them or move them to a market that reports them
+# (options in docs/phase0-findings.md). Until then, the post lists them as
+# not available.
+mandis:
+  - key: lasalgaon
+    mr: "लासलगाव"   # short name for the post
+    district: Nashik
+    market: ["APMC Lasalgaon"]
+    crops: [onion, tomato]  # gap: tomato
+  - key: nashik
+    mr: "नाशिक"   # short name for the post
+    district: Nashik
+    market: ["APMC Nasik"]
+    crops: [grapes, onion]  # gap: grapes
+  - key: pune
+    mr: "पुणे"   # short name for the post
+    district: Pune
+    market: ["APMC Pune"]
+    crops: [tomato, onion]  # both reported on only 2 of 7 days
+  - key: akola
+    mr: "अकोला"   # short name for the post
+    district: Akola
+    market: ["APMC Akola"]
+    crops: [soybean, cotton, tur, chana, wheat]
+  - key: latur
+    mr: "लातूर"   # short name for the post
+    district: Latur
+    market: ["APMC Latur"]
+    crops: [soybean, tur, chana]
+  - key: yavatmal
+    mr: "यवतमाळ"   # short name for the post
+    district: Yavatmal
+    market: ["APMC Yavatmal"]
+    crops: [cotton, soybean]  # gap: cotton
+  - key: solapur
+    mr: "सोलापूर"   # short name for the post
+    district: Solapur
+    market: ["APMC Solapur"]
+    crops: [pomegranate, jowar]
+  - key: sangli
+    mr: "सांगली"   # short name for the post
+    district: Sangli
+    market: ["APMC Sangli"]
+    crops: [turmeric, jowar, maize]
+  - key: jalgaon
+    mr: "जळगाव"   # short name for the post
+    district: Jalgaon
+    market: ["APMC Jalgaon"]
+    crops: [banana, cotton]  # gap: both
+  - key: ahilyanagar
+    mr: "अहिल्यानगर"   # short name for the post
+    district: Ahilyanagar
+    market: ["APMC Ahilyanagar"]
+    crops: [onion, pomegranate, wheat]
+  - key: nagpur
+    mr: "नागपूर"   # short name for the post
+    district: Nagpur
+    market: ["APMC Nagpur"]
+    crops: [soybean, tur, orange]
+  - key: mumbai-vashi
+    mr: "मुंबई (वाशी)"   # short name for the post
+    district: Mumbai
+    market: ["APMC Mumbai"]
+    crops: []  # to choose: the probe lists what this market reports
+
+# --------------------------------------------------------------------------
+# Pipeline settings (Phase 1)
+
+api:
+  resource: "35985678-0d79-46b4-9ed6-6f13308a1d24"  # variety-wise daily prices
+  state_filter: "filters[State]"           # confirmed by the Phase 0 probe
+  date_filter: "filters[Arrival_Date]"     # confirmed by the Phase 0 probe
+  date_format: "%d/%m/%Y"
+
+fetch:
+  days: 2        # days fetched, counting today: 2 = today (t) and yesterday (t-1)
+  keep_days: 2   # days kept and shown, counting today: 2 = only t and t-1
+
+checks:
+  max_price: 1000000   # rupees per quintal; anything above is rejected
+  jump_factor: 3       # a modal price this many times up or down is flagged
+  max_text: 120        # longest market, crop, variety or grade name accepted
+
+site:
+  # The GitHub Pages address, set in Phase 3. While empty, posts leave out links.
+  base_url: ""
+
+# One page per district. `name` is AGMARKNET's spelling; `aliases` are other
+# spellings the data has used for the same district. A district in the data
+# that matches none of these lands on an "other" page and raises a WARN.
+districts:
+  - {name: Ahilyanagar, slug: ahilyanagar, mr: "अहिल्यानगर", aliases: [Ahmednagar]}
+  - {name: Akola, slug: akola, mr: "अकोला"}
+  - {name: Amarawati, slug: amravati, mr: "अमरावती", aliases: [Amravati]}
+  - {name: Beed, slug: beed, mr: "बीड"}
+  - {name: Bhandara, slug: bhandara, mr: "भंडारा"}
+  - {name: Buldhana, slug: buldhana, mr: "बुलढाणा"}
+  - {name: Chandrapur, slug: chandrapur, mr: "चंद्रपूर"}
+  - {name: Chattrapati Sambhajinagar, slug: chhatrapati-sambhajinagar, mr: "छत्रपती संभाजीनगर", aliases: [Aurangabad]}
+  - {name: Dharashiv, slug: dharashiv, mr: "धाराशिव", aliases: [Osmanabad, Murum]}
+  - {name: Dhule, slug: dhule, mr: "धुळे"}
+  - {name: Gadchiroli, slug: gadchiroli, mr: "गडचिरोली"}
+  - {name: Gondiya, slug: gondiya, mr: "गोंदिया", aliases: [Gondia]}
+  - {name: Hingoli, slug: hingoli, mr: "हिंगोली"}
+  - {name: Jalgaon, slug: jalgaon, mr: "जळगाव"}
+  - {name: Jalna, slug: jalna, mr: "जालना"}
+  - {name: Kolhapur, slug: kolhapur, mr: "कोल्हापूर"}
+  - {name: Latur, slug: latur, mr: "लातूर"}
+  - {name: Mumbai, slug: mumbai, mr: "मुंबई", aliases: ["Bandra(E)"]}
+  - {name: Nagpur, slug: nagpur, mr: "नागपूर"}
+  - {name: Nanded, slug: nanded, mr: "नांदेड"}
+  - {name: Nandurbar, slug: nandurbar, mr: "नंदुरबार"}
+  - {name: Nashik, slug: nashik, mr: "नाशिक"}
+  - {name: Palghar, slug: palghar, mr: "पालघर"}
+  - {name: Parbhani, slug: parbhani, mr: "परभणी"}
+  - {name: Pune, slug: pune, mr: "पुणे"}
+  - {name: Raigad, slug: raigad, mr: "रायगड"}
+  - {name: Ratnagiri, slug: ratnagiri, mr: "रत्नागिरी"}
+  - {name: Sangli, slug: sangli, mr: "सांगली"}
+  - {name: Satara, slug: satara, mr: "सातारा"}
+  - {name: Sindhudurg, slug: sindhudurg, mr: "सिंधुदुर्ग"}
+  - {name: Solapur, slug: solapur, mr: "सोलापूर"}
+  - {name: Thane, slug: thane, mr: "ठाणे"}
+  - {name: Wardha, slug: wardha, mr: "वर्धा"}
+  - {name: Washim, slug: washim, mr: "वाशिम"}
+  - {name: Yavatmal, slug: yavatmal, mr: "यवतमाळ"}
+
+# --------------------------------------------------------------------------
+# Marathi text. DRAFT: every string below needs the admin's review before
+# launch. A name with no Marathi entry is shown as AGMARKNET writes it.
+
+names_mr:
+  crops:   # keyed by crop key, for the post's headline sections
+    cotton: "कापूस"
+    soybean: "सोयाबीन"
+    onion: "कांदा"
+    wheat: "गहू"
+    tur: "तूर"
+
+# Varieties that say nothing ("Other" is on about 80% of rows). They are left
+# out of the pages and the post, so the grade or a real variety tells rows apart.
+hide_varieties: ["Other"]
+
+# Devanagari names for every market are in names_markets_mr.yaml.
+market_names_file: names_markets_mr.yaml
+
+# Marathi names for every commodity and variety: the produce glossary.
+produce_names_file: names_produce_mr.yaml
+
+# How run times are named on the pages and in the post. A run gets the label
+# of the last part that has started; runs before the first part (00:00 to
+# 04:00) count as the previous day's night.
+day_parts_mr:
+  - {from: 4, mr: "सकाळ"}
+  - {from: 11, mr: "दुपार"}
+  - {from: 16, mr: "संध्याकाळ"}
+  - {from: 21, mr: "रात्री"}
+
+# Tooltips and the glossary at the foot of each page, from the AGMARKNET
+# terminology glossary (agmarknet-glossary-mr.md).
+glossary_mr:
+  terms:
+    "FAQ": {name: "वाजवी सरासरी प्रत (Fair Average Quality)", meaning: "ठरवलेल्या प्रमाणित दर्जाचा माल. हमीभाव याच प्रतीसाठी ठरतो."}
+    "Non-FAQ": {name: "वाजवी सरासरीपेक्षा कमी प्रत (Below Fair Average Quality)", meaning: "वाजवी सरासरी दर्जापेक्षा कमी प्रतीचा माल; सहसा कमी भावात विकला जातो."}
+    "Local": {name: "स्थानिक", meaning: "स्थानिक किंवा प्रतवारी न केलेला माल."}
+  key:   # shown above the tables on every district page; no tap needed
+    - "FAQ = वाजवी सरासरी प्रत"
+    - "Non-FAQ = सरासरीपेक्षा कमी प्रत"
+    - "प्रचलित भाव = ज्या भावाने सर्वाधिक माल विकला गेला"
+  columns:
+    col_date: "माल बाजारात आला आणि त्याचा भाव ठरला तो दिवस."
+    col_min: "त्या दिवशीचा सर्वात कमी भाव."
+    col_modal: "ज्या भावाने सर्वाधिक माल विकला गेला. हाच भाव तुलनेसाठी वापरा."
+    col_max: "त्या दिवशीचा सर्वात जास्त भाव."
+    col_variety: "वाण: शेतमालाचा प्रकार. प्रत: मालाचा दर्जा."
+
+text_mr:
+  site_title: "महाराष्ट्र बाजारभाव"
+  district_title: "{district} जिल्हा: बाजारभाव"
+  other_title: "इतर बाजार"
+  updated: "शेवटचे अद्ययावत: {when}"
+  unit_note: "सर्व भाव रु./क्विंटल (१०० किलो). स्रोत: AGMARKNET (data.gov.in)."
+  caution: "हे घाऊक बाजारभाव आहेत. प्रत्यक्ष भाव वाण, प्रत आणि गुणवत्तेवर अवलंबून असतो. विक्रीपूर्वी आपल्या बाजार समितीत खात्री करा."
+  no_prices: "गेल्या {days} दिवसांत या जिल्ह्यातून भाव आलेले नाहीत."
+  whats_new: "मागील अद्यतनानंतर नवीन किंवा बदललेले भाव: {count}"
+  col_crop: "शेतमाल"
+  col_variety: "वाण / प्रत"
+  col_date: "आवक दिनांक"
+  col_min: "किमान भाव"
+  col_modal: "प्रचलित भाव"
+  col_max: "कमाल भाव"
+  col_change: "बदल"
+  new_mark: "नवीन"
+  jump_mark: "असामान्य बदल: बाजारात खात्री करा"
+  all_districts: "सर्व जिल्हे"
+  glossary_title: "शब्दार्थ"
+  tap_hint: "ठिपक्यांनी अधोरेखित शब्दावर टॅप करा: त्याचा अर्थ दिसेल."
+  close: "बंद करा"
+  index_counts: "{markets} बाजार, {prices} भाव"
+  post_header: "बाजारभाव अपडेट: {when}"
+  post_summary: "{count} नवीन किंवा बदललेले भाव, {districts} जिल्ह्यांतून."
+  post_no_change: "मागील अपडेटनंतर नवीन भाव आलेले नाहीत. ताजे भाव:"
+  post_crop_none: "निवडलेल्या बाजारांत भाव उपलब्ध नाहीत"
+  post_links: "सर्व जिल्ह्यांचे सर्व भाव: {url}"
+  post_footer: "भाव रु./क्विंटल (१०० किलो), घाऊक, प्रचलित भाव. विक्रीपूर्वी आपल्या बाजार समितीत खात्री करा."
+  post_glossary: "{term} = {name}"
+  post_channel: ""   # one line linking the YouTube channel, once you write it

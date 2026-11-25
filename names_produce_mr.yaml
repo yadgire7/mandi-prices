@@ -1,0 +1,184 @@
+# Produce glossary: Marathi names for AGMARKNET's commodities and varieties.
+#
+# Keys are AGMARKNET's exact English names (matching ignores case and extra
+# spaces). Covers every commodity and variety reported in Maharashtra between
+# 19 and 25 Nov 2026. A name missing here shows in English, and the run's
+# email lists it so it can be added.
+#
+# Status: names marked "# admin" were given by the admin on 25 Nov 2026.
+# Every other name is a DRAFT for the admin's review.
+
+commodities:
+  # Grains and pulses
+  "Bajra(Pearl Millet/Cumbu)": "बाजरी"
+  "Bengal Gram(Gram)(Whole)": "हरभरा"
+  "Bengal Gram Dal(Chana Dal)": "हरभरा डाळ"
+  "Black Gram(Urd Beans)(Whole)": "उडीद"
+  "Black Gram Dal(Urd Dal)": "उडीद डाळ"
+  "Cowpea(Lobia/Karamani)": "चवळी"
+  "Green Gram(Moong)(Whole)": "मूग"
+  "Green Gram Dal(Moong Dal)": "मूग डाळ"
+  "Jowar(Sorghum)": "ज्वारी"
+  "Lentil(Masur)(Whole)": "मसूर"
+  "Maize": "मका"
+  "Masur Dal": "मसूर डाळ"
+  "Mataki": "मटकी"
+  "Paddy(Common)": "भात (धान)"
+  "Ragi(Finger Millet)": "नाचणी"
+  "Rajgir": "राजगिरा"
+  "Red gram/Arhar/Tur(whole)": "तूर"
+  "Red gram split/Arhar dal/Tur dal": "तूर डाळ"
+  "Rice": "तांदूळ"
+  "Wheat": "गहू"
+
+  # Oilseeds and cash crops
+  "Cotton": "कापूस"
+  "Ground Nut Seed": "शेंगदाणे"
+  "Groundnut": "भुईमूग शेंग"
+  "Mustard": "मोहरी"
+  "Safflower": "करडई"
+  "Sesamum(Sesame,Gingelly,Til)": "तीळ"
+  "Soyabean": "सोयाबीन"
+  "Sugarcane": "ऊस"                      # admin
+  "Sunflower/Sunflower Seed": "सूर्यफूल"
+
+  # Vegetables
+  "Beans": "घेवडा"
+  "Beetroot": "बीट"
+  "Bhindi(Ladies Finger)": "भेंडी"
+  "Bitter gourd": "कारले"
+  "Bottle gourd": "दुधी भोपळा"            # admin
+  "Brinjal": "वांगी"
+  "Cabbage": "कोबी"
+  "Carrot": "गाजर"
+  "Cauliflower": "फ्लॉवर"
+  "Chilly Capsicum": "शिमला मिरची"        # admin
+  "Chow Chow": "चाऊ चाऊ"
+  "Cucumbar(Kheera)": "काकडी"
+  "Drumstick": "शेवगा"                    # admin
+  "Elephant Yam(Suran)/Amorphophallus": "सुरण"
+  "French Beans(Frasbean)": "फरसबी"
+  "Garlic": "लसूण"
+  "Ginger(Green)": "आले"
+  "Green Chilli": "हिरवी मिरची"
+  "Green Peas": "वाटाणा"                  # admin
+  "Guar": "गवार"                          # admin
+  "Little gourd(Kundru)": "तोंडली"
+  "Long Melon(Kakri)": "वाळूक"
+  "Onion": "कांदा"
+  "Onion Green": "कांद्याची पात"
+  "Peas Wet": "ओला वाटाणा"
+  "Pointed gourd(Parval)": "परवल"
+  "Potato": "बटाटा"
+  "Pumpkin": "भोपळा"
+  "Raddish": "मुळा"
+  "Ridgeguard(Tori)": "दोडका"
+  "Snakeguard": "पडवळ"
+  "Sweet Potato": "रताळे"
+  "Sweet Pumpkin": "लाल भोपळा"
+  "Tomato": "टोमॅटो"
+
+  # Leafy greens and herbs
+  "Coriander(Leaves)": "कोथिंबीर"
+  "Methi(Leaves)": "मेथी"
+  "Mint(Pudina)": "पुदिना"
+  "Spinach": "पालक"
+
+  # Fruit
+  "Amla(Nelli Kai)": "आवळा"
+  "Apple": "सफरचंद"
+  "Banana": "केळी"
+  "Banana - Green": "कच्ची केळी"
+  "Chikoos(Sapota)": "चिकू"               # admin
+  "Coconut": "नारळ"
+  "Grapes": "द्राक्षे"
+  "Guava": "पेरू"
+  "Jack Fruit(Ripe)": "फणस"
+  "Karbuja(Musk Melon)": "खरबूज"
+  "Lime": "लिंबू"
+  "Mango": "आंबा"                         # admin
+  "Mango(Raw-Ripe)": "आंबा"               # admin
+  "Mousambi(Sweet Lime)": "मोसंबी"        # admin
+  "Orange": "संत्री"
+  "Papaya": "पपई"
+  "Pear(Marasebu)": "नासपती"
+  "Pineapple": "अननस"                     # admin
+  "Pomegranate": "डाळिंब"
+  "Seetapal": "सीताफळ"                    # admin
+  "Tamarind Fruit": "चिंच"
+  "Tender Coconut": "शहाळे"
+  "Water Melon": "कलिंगड"                 # admin
+
+  # Spices and seeds
+  "Black pepper": "काळी मिरी"
+  "Cardamom": "वेलची"
+  "Chili Red": "लाल मिरची"
+  "Cinamon(Dalchini)": "दालचिनी"
+  "Corriander seed": "धणे"
+  "Cummin Seed(Jeera)": "जिरे"
+  "Methi Seeds": "मेथी दाणे"
+  "Soanf": "बडीशेप"
+  "Turmeric": "हळद"
+
+  # Nuts, sweeteners and processed
+  "Almond(Badam)": "बदाम"
+  "Arecanut(Betelnut/Supari)": "सुपारी"
+  "Cashewnuts": "काजू"
+  "Ghee": "तूप"
+  "Gur(Jaggery)": "गूळ"
+  "Sabu Dan": "साबुदाणा"
+  "Sugar": "साखर"
+
+  # Flowers
+  "Astera": "ॲस्टर"
+  "Chrysanthemum(Loose)": "शेवंती"
+  "Kakada": "काकडा"
+  "Marigold(Calcutta)": "झेंडू"
+  "Rose(Loose))": "गुलाब"
+
+  # Livestock
+  "Cow": "गाय"
+  "Ox": "बैल"
+  "She Buffalo": "म्हैस"
+
+varieties:
+  "1009 Kar": "१००९ कार"
+  "147 Average": "१४७ सरासरी"
+  "1st Sort": "पहिला दर्जा"
+  "2nd Sort": "दुसरा दर्जा"
+  "Average (Whole)": "सरासरी (अख्खा)"
+  "Bansi": "बन्सी"
+  "Chinchwad": "चिंचवड"
+  "Cow": "गाय"
+  "Deshi Red": "देशी लाल"
+  "Deshi White": "देशी पांढरा"
+  "Desi": "देशी"
+  "Fursungi": "फुरसुंगी"
+  "Green (Whole)": "हिरवा (अख्खा)"
+  "H-4(A) 27mm FIne": "एच-४(ए) २७ मिमी फाइन"
+  "Halva": "हळवा"
+  "Hosur Red": "होसूर लाल"
+  "Hybrid": "संकरित"
+  "Jowar ( White)": "पांढरी ज्वारी"
+  "Jowar (Yellow)": "पिवळी ज्वारी"
+  "Kabul Small": "काबुली (लहान)"
+  "Kalyan": "कल्याण"
+  "Khandesh": "खानदेशी"
+  "LH-900": "एलएच-९००"
+  "LRA": "एलआरए"
+  "Local": "स्थानिक"
+  "Maharashtra 2189": "महाराष्ट्र २१८९"
+  "Methiseeds": "मेथी दाणे"
+  "Mogan Medium": "मोगन मध्यम"
+  "Other": "इतर"
+  "Ox": "बैल"
+  "Pole": "वेलीचा"
+  "Rajapuri": "राजापुरी"
+  "Red": "लाल"
+  "Sharbati": "शरबती"
+  "She Baffelo": "म्हैस"
+  "Simla": "सिमला"
+  "Unhali": "उन्हाळी"
+  "White": "पांढरा"
+  "White Fozi": "पांढरा फौजी"
+  "Yellow": "पिवळा"

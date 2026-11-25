@@ -1,0 +1,430 @@
+# AGMARKNET Maharashtra market names, from the portal's public filter list, 25 Nov 2026
+ PACHORA(BHADGAON)
+APMC  Chimur
+APMC  Latur
+APMC  Rajura
+APMC  VASAI
+APMC  Yawal
+APMC APMC Bori Arab
+APMC Aarni
+APMC Aatpadi 
+APMC Achalpur 
+APMC Aheri 
+APMC Ahilyanagar 
+APMC Ahmedpur
+APMC Akhadabalapur 
+APMC Akkalkot 
+APMC Akkalkuwa 
+APMC Akluj 
+APMC Akola 
+APMC Akole 
+APMC Akot 
+APMC Alibagh 
+APMC Amalner
+APMC Amarawati 
+APMC Ambad (Vadigodri) 
+APMC Ambejogai 
+APMC Amgaon 
+APMC Anajngaon 
+APMC Arjuni Morgaon 
+APMC Armori 
+APMC Arvi 
+APMC Ashti 
+APMC Ashti(Jalna)
+APMC Aurad Shahajani 
+APMC Ausa 
+APMC BHOKARDAN 
+APMC Babhulgaon 
+APMC Badnapur
+APMC Balapur 
+APMC Baramati
+APMC Barshi 
+APMC Barshi Takli 
+APMC Basmat
+APMC Beed
+APMC Bhadrawati 
+APMC Bhandara 
+APMC Bhivandi 
+APMC Bhiwapur 
+APMC Bhokar
+APMC Bhoom 
+APMC Bhor 
+APMC Bhusaval 
+APMC Bodwad 
+APMC Brahmpuri 
+APMC Buldhana
+APMC Chakur 
+APMC Chalisgaon 
+APMC Chamorshi 
+APMC Chandrapur 
+APMC Chandur Bazar 
+APMC Chandur Railway
+APMC Chandwad 
+APMC Chattrapati Sambhajinagar 
+APMC Chikali 
+APMC Chopda 
+APMC Dahivadi 
+APMC Darwha 
+APMC Daryapur 
+APMC Deglur 
+APMC Deoulgaon Raja 
+APMC Devala 
+APMC Devani
+APMC Dhadgaon 
+APMC Dhamngaon-Railway 
+APMC Dharangaon 
+APMC Dharashiv
+APMC Dharmabad 
+APMC Dharni 
+APMC Dhule 
+APMC Digras
+APMC Dindori 
+APMC Dondaicha 
+APMC Dound 
+APMC Dudhani 
+APMC Fulmbri 
+APMC Gadchiroli 
+APMC Gadhinglaj
+APMC Gangakhed 
+APMC Gangapur 
+APMC Gevrai 
+APMC Ghansawangi
+APMC Ghatanji
+APMC Ghoti 
+APMC Gondiya 
+APMC Gondpimpri 
+APMC Goregaon 
+APMC Hadgaon
+APMC Himayatnagar
+APMC Hinganghat 
+APMC Hingna
+APMC Hingoli
+APMC Indapur 
+APMC Islampur 
+APMC Jafrabad
+APMC Jalana 
+APMC Jalgaon
+APMC Jalgaon(Jamod)
+APMC Jalkot
+APMC Jamkhed 
+APMC Jamner 
+APMC Jawala-Bajar 
+APMC Jawali 
+APMC Jintur 
+APMC Junnar 
+APMC Kada 
+APMC Kaij
+APMC Kalamb
+APMC Kalamb (Dharashiv) 
+APMC Kalamnuri
+APMC Kalmeshwar 
+APMC Kalvan 
+APMC Kalyan 
+APMC Kamthi 
+APMC Kandhar
+APMC Kannad 
+APMC Karad 
+APMC Karanja 
+APMC Karjat 
+APMC Karjat(Raigad) 
+APMC Karmala 
+APMC Katol 
+APMC Khalapur (Shil-Phata) 
+APMC Khamgaon 
+APMC Khed 
+APMC Khultabad 
+APMC Kille Dharur 
+APMC Kinwat 
+APMC Kolhapur
+APMC Kopargaon 
+APMC Koregaon 
+APMC Korpana 
+APMC Kurdwadi 
+APMC Lakhandur 
+APMC Lakhani 
+APMC Lasalgaon 
+APMC Lasur Station 
+APMC Loha 
+APMC Lonand 
+APMC Lonar 
+APMC Mahad 
+APMC Mahagaon 
+APMC Mahur 
+APMC Majalgaon 
+APMC Malegaon 
+APMC Malegaon(Washim) 
+APMC Malkapur 
+APMC Manchar 
+APMC Mandhal 
+APMC Mangal Wedha 
+APMC Mangaon 
+APMC Mangrulpeer
+APMC Manmad 
+APMC Manora 
+APMC Mantha 
+APMC Manwat 
+APMC Maregoan 
+APMC Mauda
+APMC Mehekar 
+APMC Mohol 
+APMC Morshi 
+APMC Motala 
+APMC Mudkhed
+APMC Mukhed
+APMC Mul 
+APMC Mumbai 
+APMC Murbad 
+APMC Murtizapur 
+APMC Murud 
+APMC Murum 
+APMC Nagbhid
+APMC Nagpur 
+APMC Naigaon 
+APMC Nampur
+APMC Nanded 
+APMC Nandgaon 
+APMC Nandgaon Khandeshwar 
+APMC Nandura 
+APMC Nandurbar 
+APMC Narkhed 
+APMC Nasik 
+APMC Navapur 
+APMC Ner Parasopant 
+APMC Newasa 
+APMC Nilanga 
+APMC Nira 
+APMC Pachora 
+APMC Paithan 
+APMC Palam 
+APMC Palghar 
+APMC Palus 
+APMC Pandhakawada 
+APMC Pandharpur 
+APMC Panvel 
+APMC Paranda 
+APMC Parbhani 
+APMC Parli Vaijnath
+APMC Parner 
+APMC Parola 
+APMC Parshiwani 
+APMC Partur 
+APMC Patan
+APMC Pathardi 
+APMC Pathari
+APMC Patoda 
+APMC Patur 
+APMC Pavani
+APMC Pen 
+APMC Phaltan 
+APMC Pimpalgaon Baswant 
+APMC Pombhurna
+APMC Pulgaon 
+APMC Pune 
+APMC Purna 
+APMC Pusad
+APMC Rahata 
+APMC Rahuri 
+APMC Ralegaon 
+APMC Ramtek 
+APMC Ratnagiri (Nachane) 
+APMC Raver 
+APMC Renapur
+APMC Risod 
+APMC Roha 
+APMC Sadak Arjuni 
+APMC Sailu
+APMC Sakri 
+APMC Samudrapur 
+APMC Sangamner 
+APMC Sangli 
+APMC Sangola 
+APMC Sangrampur 
+APMC Satana 
+APMC Satara 
+APMC Savali 
+APMC Savner 
+APMC Sengoan 
+APMC Shahada 
+APMC Shahapur 
+APMC Shegaon 
+APMC Shevgaon 
+APMC Shirala
+APMC Shirpur 
+APMC Shirur 
+APMC Shrigonda 
+APMC Shrirampur 
+APMC Sillod 
+APMC Sindevahi
+APMC Sindhudurg 
+APMC Sindi 
+APMC Sindkhed Raja 
+APMC Sinner 
+APMC Sironcha
+APMC Solapur 
+APMC Sonpeth 
+APMC Suragana 
+APMC Tadkalas 
+APMC Talegaon Dabhade Tal Mawal Dist Pune
+APMC Taloda 
+APMC Tasgaon 
+APMC Telhara 
+APMC Tiroda
+APMC Tiwasa 
+APMC Tuljapur 
+APMC Tumsar 
+APMC Udgir 
+APMC Ulhasnagar 
+APMC Umared 
+APMC Umarga 
+APMC Umari
+APMC Umarkhed 
+APMC Umrane
+APMC Vadgaonpeth 
+APMC Vaduj 
+APMC Vadvani 
+APMC Vai 
+APMC Vaijpur 
+APMC Vani
+APMC Varora 
+APMC Varud
+APMC Vita 
+APMC Wardha 
+APMC Washi (Dharashiv)
+APMC Washim 
+APMC Yavatmal 
+APMC Yeola 
+APMC ZariZamini
+Acf Agro Marketing, Malkapur, Dist Buldhana
+Adarsh Krishi Bazar, Dist Hingoli
+Akola(Borgaon Manju) 
+Amrawati(Frui & Veg. Market) 
+Arihant Krishi Utpan Bazar Pvt Ltd, Wardha
+Armori(Desaiganj) 
+Ashti(Karanja) 
+Balaji Krushi Bazar, Dist Washim
+Balaji Krushi Market, Tal Zari Zamni, Dist Yeotmal
+Baphana Agro Market Inc, Niphad, Nashik
+Barshi(Vairag) 
+Basmat(Kurunda)
+Bhagyoday Cotton And Agri Market, Vaijapur, Chattrapati Sambhajinagar
+Bhokardan(Pimpalgaon Renu) 
+Bodwad(Varangaon) 
+Bori 
+Bsk Krishi Bazar Private Limited, Mehkar, Dist Buldhana
+Buldhana(Dhad)
+Chandrapur(Ganjwad) 
+Cottoncity Agro Foods Pvt Ltd, Dist Yavatmal
+Dahanu APMC
+Dand Brothers Agro Product Pvt Ltd, Malkapur, Dist Buldhana
+Deglur(Hanegaon) 
+Deulgaon Raja Balaji Agro Marketing Pvt Market, Deulgaon Raja, Dist Buldhana
+Dindori(Vani) 
+Dondaicha (Sindhkheda) 
+Gajanaan Krushi Bazar, Kalmunri, Dist Hingoli
+Gajanan Krushi Utpanna Bazar (India) Pvt Ltd, Basmat, Dist Hingoli
+Gopal Krishna Agro Product Pvt Ltd, Tal Jamner, Dist Jalgaon
+Govardhan Farm Produce Market Pvt Ltd Tal Chopda  Dist Jalgaon
+Hadgaon(Tamsa)
+Hari Har Khajagi Bazar Parisar, Gangakhed, Dist Parbhani
+Hinganghat Infrastructure Pvt Ltd, Hinganghat, Dist Wardha
+Hingoli(Kanegoan Naka)
+Indapur(Bhigwan) 
+Indapur(Nimgaon Ketki) 
+J S K Agro Market Produce Pvt Ltd, Dharangaon, Dist Jalgaon
+Jagdamba Agrocare Pvt Ltd, Pandharkawada, Dist Yeotmal
+Jai Gajanan Krushi Bazar, Washim
+Jalgaon Jamod(Aasalgaon)
+Jalgaon(Masawat)
+Jamner(Neri) 
+Janata Agri Market (DLS Agro Infrastructure Pvt Ltd), Dist Dhule
+Jaykissan Krushi Uttpan Khajgi Bazar, Khamgaon, Dist Buldhana
+Junnar(Alephata) 
+Junnar(Bhlhe) 
+Junnar(Narayangaon) 
+Junnar(Otur) 
+KISAN MARKET YARD
+Kada(Ashti) 
+Kai Madhavrao Pawar Khajgi Krushi Utappan Bazar, Georai, Dist Beed
+Kalyan(Cattle Market) 
+Karjat(Rashin)
+Keshranand Cottex Pvt Agro, Dondicha, Dist Dhule
+Khed(Chakan) 
+Kisan Seva Private Market, Tal Gangapur, Dist Chattrapati Sambhajinagar
+Kolhapur(Laxmipuri)
+Kolhapur(Malkapur)
+Krushna Krishi Bazar, Washim
+Kurdwadi(Modnimb) 
+Lasalgaon(Niphad) 
+Lasalgaon(Vinchur) 
+Late Vasantraoji Dandale Khajgi Krushi Bazar, Tal Balapur, Dist Akola
+Latur(Murud) 
+Laxmi Krushi Utpanna Khjgi Bajar, Dist Jalgaon
+Laxmi-Sopan Agriculture Produce Marketing Co Ltd, Barshi, Dist Solapur
+M/S Kalpana Agri Commodities Marketing, Nagpur
+Maharaja Agresen Pvt Krushi Utappan Bazar Samati, Dist Buldhana
+Maharashtra Agriculture Farm Produce Pvt Market Yard, Tal Sillod, Dist Chattrapati Sambhajinagar
+Mahavir Agri Market, Pachora, Dist Jalgaon
+Mahavir Agriculture Produce Market Company Pvt Ltd, Talegaon, Yeotmal
+Mahavira Agricare Pvt Ltd, Lalguda, Wani, Dist Yevatmal
+Mahesh Krushi Utpanna Bazar, Digras, Dist Yeotmal
+Malharshree Khajgi Krushi Utpann Bajar, Chandanpuri Tal Malegaon, Nashik
+Mankameshwr Fpc Sanchalit Mankameshwar Khajagi Krushi Utpanna Bajar Ltd, Nifad Nashik
+Marathawada Shetkari Khajgi Bazar Parisar, Vasmat, Dist Hingoli
+Mukhed(Mukkambad) 
+Mumbai- Fruit Market 
+Mumbai- Thane Market 
+Mumbai-Onion & Potato Market 
+N.N.Mundhada Agriculture Market Produce, Dist Washim
+NCDEX Spot Exchange, Dist Mumbai
+Naigaon(Kuntur) 
+Nashik(Devlali) 
+Navratna Krushi Utpanna Khajgi Bazar Llp, Tal Degloor, Dist Nanded
+Newasa(Ghodegaon) 
+Nira(Saswad) 
+Omchatinya Multi State Agro Purpose Co-Op Society, Dist Ahilyanagar
+Partur(Vatur)
+Perfect Krishi Market Yard Pvt Ltd, Dist Nashik
+Perfect Krushi Market Yard, Tal Madha, Dist Solapur
+Pimpalgaon Baswant(Saykheda) 
+Prasanna Krushi Market, Tal Parnet, Dist Ahilyanagar
+Pratap Nana Mahale Khajgi Krushi Uttpana Bazar, Samati-Dhule
+Premium Krushi Utpanna Bazar, Nashik
+Pune(Khadiki) 
+Pune(Manjri) 
+Pune(Moshi) 
+Pune(Pimpri) 
+Rahuri(Songaon) 
+Rahuri(Vambori) 
+Ramdev Krushi Bazaar, Digras road, Manora, Dist Washim
+Rangrao Patil Krushi Utpanna Khajgi Bazar (Llp), Udgir, Dist Latur
+Raver(Savda)
+Renukadevi Private Market Yard, Dist Yavatmal
+Sai Agro Infratrade Pvt Agri Market, Dist Wardha
+Samartha Krushi Bajar Pvt Ltd, Dist Parbhani
+Sanghavi Agriculture Marketing & Processing Pvt Ltd Tal Pachora, Dist Jalgaon
+Sangli(Miraj) 
+Sangli(Phale, Bhajipala Market) 
+Sangrampur(Varvatbakal) 
+Sant Namdev Krushi Bazar, Tal Sengaon Dist Hingoli
+Shantilal Jain Agro Produce Market Pvt Ltd, Bodwad, Dist Jalgaon
+Shekari Krushi Khajgi Bazar, Arni, Dist Yavatmal
+Shetkari Khajgi Bajar Parisar, Tal Bhokar, Dist Nanded
+Shetkari Krushi Bazar, Tal Manora, Dist Washim
+Shetkari Krushi Utapanna Bazar Roshankheda Tal Varud Dist Amravati
+Shevgaon(Bodhegaon) 
+Shivsiddha Govind Producer Company Ltd Sanchalit Khajgi Krushi Utpann Bajar Samati-Abhona-Kalwan
+Shree Sairaj Krushi Market, Dist Ahilyanagar
+Shree Salasar Krushi Bazar, Dist Parbhani
+Shri Gajanan Maharaj Khajagi Krushi Utpanna Bazar, Akot, Dist Akola
+Shri Rameshwar Krushi Market, M.Nagar, Tal Deola, Dist Nashik
+Shrigonda(Ghogargaon)
+Shrirampur(Belapur) 
+Sillod(Bharadi)
+Sillod(Soygaon)
+Sindi (Selu)
+Umarked(Danki) 
+Varud(Rajura Bazar)
+Vijaya Agri Private Market, Jamner, Dist Jalgaon
+Vitthal Krushi Utpanna Bazar Pvt Ltd, Washim
+Washim(Ansing) 
+Yashika Agro Marketing, Tal Bhusawal, Jalgaon

@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""Run the Shetkari Shala mandi price pipeline once.
+
+    python fetch_mandi_prices.py                    # a real run: API, pages, email
+    python fetch_mandi_prices.py --now --note "..."  # the admin's run: always posts
+    python fetch_mandi_prices.py --dry-run --from-file rows.csv --at 2026-11-25T07:00
+
+A dry run reads saved data instead of the API, keeps its own snapshot under
+out/dry-run/, and saves the email to a file instead of sending it.
+
+Every run ends with one email (or, in a dry run, one saved email), even if
+something crashes on the way. Exit code 1 means the run failed.
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import datetime as dt
+import json
+import os
+import sys
+import traceback
+from pathlib import Path
+
+from mandi import notify, pipeline
+from mandi.api import Client, canonical, load_api_key, parse_date
+from mandi.config import load_config
+
+HERE = Path(__file__).resolve().parent
+
+
+def read_dotenv(path: Path) -> dict:
+    values = {}
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            name, sep, value = line.partition("=")
+            if sep and name.strip() and not name.strip().startswith("#"):
+                values[name.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+def file_source(path: Path, cfg: dict):
+    """Saved rows (probe CSV or API JSON), limited to the days a real run would fetch."""
+    def load(today: dt.date) -> list[dict]:
+        if path.suffix.lower() == ".csv":
+            with path.open(encoding="utf-8", newline="") as fh:
+                raw = list(csv.DictReader(fh))
+        else:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            raw = data.get("records", []) if isinstance(data, dict) else data
+        window = {today - dt.timedelta(days=i) for i in range(int(cfg["fetch"]["days"]))}
+        return [r for r in canonical(raw) if parse_date(r.get("arrival_date")) in window]
+    return load
+
+
+def parse_args(argv):
+    p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    p.add_argument("--config", type=Path, default=HERE / "config.yaml")
+    p.add_argument("--dry-run", action="store_true", help="no API calls and no email")
+    p.add_argument("--from-file", type=Path, help="read saved rows instead of the API")
+    p.add_argument("--now", action="store_true", help="always produce a post (the admin's run)")
+    p.add_argument("--note", default="", help="the admin's message, placed above the prices")
+    p.add_argument("--at", help="pretend the run happens at this IST time, e.g. 2026-11-25T07:00")
+    p.add_argument("--no-email", action="store_true", help="save the email instead of sending it")
+    p.add_argument("--site", type=Path, help="where to build the pages")
+    p.add_argument("--state", type=Path, help="the snapshot file")
+    p.add_argument("--out", type=Path, default=HERE / "out", help="emails and posts are saved here")
+    args = p.parse_args(argv)
+    if args.dry_run and not args.from_file:
+        p.error("--dry-run needs --from-file, so that it makes no API calls")
+    base = args.out / "dry-run" if args.dry_run else HERE
+    args.site = args.site or base / "site"
+    args.state = args.state or base / "state" / "prices.json"
+    return args
+
+
+def main(argv=None, environ=os.environ) -> int:
+    args = parse_args(argv)
+    env = {**read_dotenv(HERE / ".env"), **environ}
+    if args.at:
+        now = dt.datetime.fromisoformat(args.at).replace(tzinfo=pipeline.IST)
+    else:
+        now = dt.datetime.now(pipeline.IST)
+    report = notify.Report(status="FAIL", when=now.strftime("%d %b %Y %H:%M IST"),
+                           log_url=notify.log_url(env))
+    try:
+        cfg = load_config(args.config)
+        if args.from_file:
+            source = file_source(args.from_file, cfg)
+        else:
+            key, notes = load_api_key(env)
+            for note in notes:
+                report.warnings.append(note)
+            if not key:
+                raise RuntimeError("no API key: set DATA_GOV_IN_API_KEY or add it to .env")
+            source = pipeline.api_source(Client(key), cfg)
+        result = pipeline.run(cfg, source, pipeline.Options(
+            now=now, site_dir=args.site, state_path=args.state,
+            force_post=args.now, note=args.note))
+        report.status = "WARN" if result.status == "OK" and report.warnings else result.status
+        report.post, report.summary = result.post, result.summary
+        report.warnings += result.warnings
+        report.info = result.info
+    except Exception as err:  # the email must still go out
+        report.status = "FAIL"
+        report.summary = ["The run stopped before finishing. Nothing was posted."]
+        report.warnings.append(notify.scrub(f"{type(err).__name__}: {err}", env))
+        print(notify.scrub(traceback.format_exc(), env), file=sys.stderr)
+
+    stamp = now.strftime("%Y%m%d-%H%M")
+    saved = notify.save(report, args.out / f"email-{stamp}.eml", env)
+    if report.post:
+        (args.out / f"post-{stamp}.txt").write_text(report.post, encoding="utf-8")
+    print(notify.scrub(notify.subject(report), env))
+    print(notify.scrub(notify.body(report), env))
+
+    if args.dry_run or args.no_email:
+        print(f"Email not sent; saved to {saved}")
+    else:
+        try:
+            notify.send(report, env)
+            print("Email sent.")
+        except notify.NotConfigured as err:
+            print(f"Email NOT sent: {err}. Saved to {saved}", file=sys.stderr)
+            return 1
+        except Exception as err:
+            print(notify.scrub(f"Email NOT sent: {type(err).__name__}: {err}", env), file=sys.stderr)
+            return 1
+    return 1 if report.status == "FAIL" else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

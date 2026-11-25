@@ -1,0 +1,14 @@
+# Secrets
+.env
+
+# Local environment
+.venv/
+__pycache__/
+*.pyc
+
+# Probe output
+data/
+
+# Pipeline output
+out/
+site/

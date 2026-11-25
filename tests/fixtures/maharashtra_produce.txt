@@ -1,0 +1,153 @@
+# Produce and variety names reported in Maharashtra, 19-25 Nov 2026 (data.gov.in)
+commodity	Almond(Badam)
+commodity	Amla(Nelli Kai)
+commodity	Apple
+commodity	Arecanut(Betelnut/Supari)
+commodity	Astera
+commodity	Bajra(Pearl Millet/Cumbu)
+commodity	Banana
+commodity	Banana - Green
+commodity	Beans
+commodity	Beetroot
+commodity	Bengal Gram Dal(Chana Dal)
+commodity	Bengal Gram(Gram)(Whole)
+commodity	Bhindi(Ladies Finger)
+commodity	Bitter gourd
+commodity	Black Gram Dal(Urd Dal)
+commodity	Black Gram(Urd Beans)(Whole)
+commodity	Black pepper
+commodity	Bottle gourd
+commodity	Brinjal
+commodity	Cabbage
+commodity	Cardamom
+commodity	Carrot
+commodity	Cashewnuts
+commodity	Cauliflower
+commodity	Chikoos(Sapota)
+commodity	Chili Red
+commodity	Chilly Capsicum
+commodity	Chow Chow
+commodity	Chrysanthemum(Loose)
+commodity	Cinamon(Dalchini)
+commodity	Coconut
+commodity	Coriander(Leaves)
+commodity	Corriander seed
+commodity	Cotton
+commodity	Cow
+commodity	Cowpea(Lobia/Karamani)
+commodity	Cucumbar(Kheera)
+commodity	Cummin Seed(Jeera)
+commodity	Drumstick
+commodity	Elephant Yam(Suran)/Amorphophallus
+commodity	French Beans(Frasbean)
+commodity	Garlic
+commodity	Ghee
+commodity	Ginger(Green)
+commodity	Grapes
+commodity	Green Chilli
+commodity	Green Gram Dal(Moong Dal)
+commodity	Green Gram(Moong)(Whole)
+commodity	Green Peas
+commodity	Ground Nut Seed
+commodity	Groundnut
+commodity	Guar
+commodity	Guava
+commodity	Gur(Jaggery)
+commodity	Jack Fruit(Ripe)
+commodity	Jowar(Sorghum)
+commodity	Kakada
+commodity	Karbuja(Musk Melon)
+commodity	Lentil(Masur)(Whole)
+commodity	Lime
+commodity	Little gourd(Kundru)
+commodity	Long Melon(Kakri)
+commodity	Maize
+commodity	Mango(Raw-Ripe)
+commodity	Marigold(Calcutta)
+commodity	Masur Dal
+commodity	Mataki
+commodity	Methi Seeds
+commodity	Methi(Leaves)
+commodity	Mint(Pudina)
+commodity	Mousambi(Sweet Lime)
+commodity	Mustard
+commodity	Onion
+commodity	Onion Green
+commodity	Orange
+commodity	Ox
+commodity	Paddy(Common)
+commodity	Papaya
+commodity	Pear(Marasebu)
+commodity	Peas Wet
+commodity	Pineapple
+commodity	Pointed gourd(Parval)
+commodity	Pomegranate
+commodity	Potato
+commodity	Pumpkin
+commodity	Raddish
+commodity	Ragi(Finger Millet)
+commodity	Rajgir
+commodity	Red gram split/Arhar dal/Tur dal
+commodity	Red gram/Arhar/Tur(whole)
+commodity	Rice
+commodity	Ridgeguard(Tori)
+commodity	Rose(Loose))
+commodity	Sabu Dan
+commodity	Safflower
+commodity	Seetapal
+commodity	Sesamum(Sesame,Gingelly,Til)
+commodity	She Buffalo
+commodity	Snakeguard
+commodity	Soanf
+commodity	Soyabean
+commodity	Spinach
+commodity	Sugar
+commodity	Sugarcane
+commodity	Sunflower/Sunflower Seed
+commodity	Sweet Potato
+commodity	Sweet Pumpkin
+commodity	Tamarind Fruit
+commodity	Tender Coconut
+commodity	Tomato
+commodity	Turmeric
+commodity	Water Melon
+commodity	Wheat
+variety	1009 Kar
+variety	147 Average
+variety	1st Sort
+variety	2nd Sort
+variety	Average (Whole)
+variety	Bansi
+variety	Chinchwad
+variety	Cow
+variety	Deshi Red
+variety	Deshi White
+variety	Desi
+variety	Fursungi
+variety	Green (Whole)
+variety	H-4(A) 27mm FIne
+variety	Halva
+variety	Hosur Red
+variety	Jowar ( White)
+variety	Jowar (Yellow)
+variety	Kabul Small
+variety	Kalyan
+variety	Khandesh
+variety	LH-900
+variety	LRA
+variety	Local
+variety	Maharashtra 2189
+variety	Methiseeds
+variety	Mogan Medium
+variety	Other
+variety	Ox
+variety	Pole
+variety	Rajapuri
+variety	Red
+variety	Sharbati
+variety	She Baffelo
+variety	Simla
+variety	Unhali
+variety	White
+variety	White Fozi
+variety	Yellow
