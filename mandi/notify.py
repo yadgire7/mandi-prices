@@ -20,6 +20,10 @@ POST_START = "----- WhatsApp post: copy from the next line -----"
 POST_END = "----- end of post -----"
 
 
+class MailError(Exception):
+    """Sending failed; the message says at which stage, never with a setting's value."""
+
+
 class NotConfigured(Exception):
     """Mail settings are missing, so the email was saved to a file instead."""
 
@@ -87,17 +91,35 @@ def send(report: Report, env=os.environ, smtp_ssl=smtplib.SMTP_SSL, smtp=smtplib
     if missing:
         raise NotConfigured("mail settings missing: " + ", ".join(missing))
     msg = message(report, env)
-    host, port = env["SMTP_HOST"], int(env.get("SMTP_PORT") or 465)
+    host = env["SMTP_HOST"].strip()
+    try:
+        port = int(str(env.get("SMTP_PORT") or 465).strip())
+    except ValueError:
+        raise MailError("SMTP_PORT is not a number; use 465 (SSL) or 587 (STARTTLS)") from None
+    mode = "SSL" if port == 465 else "STARTTLS"
     context = ssl.create_default_context()
-    if port == 465:
-        with smtp_ssl(host, port, context=context, timeout=30) as server:
-            server.login(env["SMTP_USER"], env["SMTP_PASSWORD"])
+    stage = "connecting"
+    try:
+        if port == 465:
+            server = smtp_ssl(host, port, context=context, timeout=30)
+        else:
+            server = smtp(host, port, timeout=30)
+        with server:
+            if port != 465:
+                stage = "starting TLS"
+                server.starttls(context=context)  # never send the password unencrypted
+            stage = "logging in"
+            server.login(env["SMTP_USER"].strip(), env["SMTP_PASSWORD"].strip())
+            stage = "sending"
             server.send_message(msg)
-    else:
-        with smtp(host, port, timeout=30) as server:
-            server.starttls(context=context)  # never send the password unencrypted
-            server.login(env["SMTP_USER"], env["SMTP_PASSWORD"])
-            server.send_message(msg)
+    except Exception as err:
+        # Says where it failed without printing any setting: GitHub would hide
+        # them anyway, and a host or port is enough to guess the mailbox.
+        hint = {"connecting": " Check SMTP_HOST and SMTP_PORT.",
+                "starting TLS": " Port 465 needs SSL; 587 needs STARTTLS.",
+                "logging in": " Check SMTP_USER and the app password (not the login password)."
+                }.get(stage, "")
+        raise MailError(f"{stage} ({mode}) failed: {type(err).__name__}: {err}.{hint}") from err
 
 
 def save(report: Report, path: Path, env=os.environ) -> Path:

@@ -547,6 +547,21 @@ class NotifyTests(unittest.TestCase):
         self.assertIn(("starttls",), calls)
         self.assertEqual(calls.count(("send", "admin@example.com")), 2)
 
+    def test_send_failure_names_the_stage_but_no_setting(self):
+        class Refuses:
+            def __init__(self, *a, **kw): pass
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def login(self, user, pw): raise OSError("auth refused")
+        with self.assertRaises(notify.MailError) as caught:
+            notify.send(self.report(), self.ENV, smtp_ssl=Refuses, smtp=Refuses)
+        text = str(caught.exception)
+        self.assertIn("logging in (SSL)", text)
+        for value in self.ENV.values():
+            self.assertNotIn(value, text)
+        with self.assertRaises(notify.MailError):
+            notify.send(self.report(), {**self.ENV, "SMTP_PORT": "SSL"})
+
     def test_missing_settings_raise_not_configured(self):
         with self.assertRaises(notify.NotConfigured):
             notify.send(self.report(), {})
