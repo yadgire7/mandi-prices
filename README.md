@@ -175,12 +175,19 @@ Two workflows do the work:
   reviewed pull requests, and publishes `site/` to GitHub Pages.
 - `.github/workflows/tests.yml` runs the tests on every pull request, with a
   read-only token and no secrets.
+- `.github/workflows/check-mail.yml`, started by hand, sends one test email
+  with the repository's secrets, to prove they work:
+  `gh workflow run check-mail.yml -R yadgire7/mandi-prices`.
 
 Setup, in order. Steps marked **you** happen in your GitHub or GoDaddy account.
 
 1. **You:** create the public repository `mandi-prices` and push `main`.
-2. **You:** Settings → Secrets and variables → Actions: add `DATA_GOV_IN_API_KEY`,
-   `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `MAIL_TO`.
+2. **You:** once `.env` is complete and `--test-email` works, upload it with
+   `gh secret set -f .env -R yadgire7/mandi-prices` (or add `DATA_GOV_IN_API_KEY`,
+   `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `MAIL_TO`
+   under Settings → Secrets and variables → Actions). Then run
+   `scripts/check_setup.sh`: it checks `.env`, the API key, the mail settings and
+   the GitHub secret names, and prints only OK or MISSING, never a value.
    Secrets cannot be read back, are hidden in logs and never reach pull requests.
 3. **You:** Settings → Pages → Source: **GitHub Actions**.
 4. ~~**You:** verify `shetkarishala.com` for GitHub Pages~~ Done 25 Nov 2026.
@@ -213,6 +220,7 @@ Actions tab. Watch for that email.
 | `names_produce_mr.yaml` | The produce glossary: Marathi names for every commodity and variety |
 | `probe_api.py` | The Phase 0 probe |
 | `scripts/shadow.sh` | Installs, checks and removes the shadow-week schedule (macOS launchd) |
+| `scripts/check_setup.sh` | Checks `.env`, the API key, the mail settings and the GitHub secrets |
 | `tests/` | Tests for the pipeline and the probe |
 | `docs/phase0-findings.md` | What Phase 0 found |
 | `.github/` | The scheduled and test workflows, and Dependabot settings |

@@ -673,10 +673,12 @@ class WorkflowTests(unittest.TestCase):
                         self.assertNotRegex(step.get("run", ""), r"\$\{\{")
 
     def test_secrets_never_reach_pull_requests(self):
-        prices = self.load("prices.yml")
-        self.assertEqual(set(self.triggers(prices)), {"schedule", "workflow_dispatch"})
-        tests = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
-        self.assertNotIn("secrets.", tests)
+        for path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            if "secrets." in path.read_text(encoding="utf-8"):
+                with self.subTest(path.name):
+                    self.assertLessEqual(set(self.triggers(self.load(path.name))),
+                                         {"schedule", "workflow_dispatch"},
+                                         "a workflow that uses secrets may not run on pull requests or pushes")
         self.assertEqual(self.load("tests.yml")["permissions"], {"contents": "read"})
 
     def test_requirements_are_hash_pinned(self):
