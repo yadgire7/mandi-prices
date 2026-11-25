@@ -71,6 +71,10 @@ def validate_config(cfg) -> None:
         problems.append("fetch.days must be between 1 and 7")
     if not isinstance(keep, int) or not isinstance(days, int) or keep < days:
         problems.append("fetch.keep_days must be at least fetch.days")
+    fetcher = cfg.get("fetcher") or {}
+    warn_h, fail_h = fetcher.get("warn_after_hours"), fetcher.get("fail_after_hours")
+    if not all(isinstance(h, (int, float)) and h > 0 for h in (warn_h, fail_h)) or warn_h >= fail_h:
+        problems.append("fetcher.warn_after_hours and fail_after_hours must be positive, warn below fail")
 
     checks = cfg.get("checks") or {}
     for key in ("max_price", "jump_factor", "max_text"):

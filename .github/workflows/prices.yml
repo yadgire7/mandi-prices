@@ -1,6 +1,11 @@
-# The pipeline on GitHub: fetch prices, build the pages, email the admin,
+# The pipeline on GitHub: check the prices, build the pages, email the admin,
 # save the snapshot, publish the pages. Runs on a schedule, or by hand from
 # the Actions tab (only people with write access, i.e. the admin, can do that).
+#
+# data.gov.in refuses connections from GitHub's servers (outside India), so a
+# machine in India (for now the admin's Mac, scripts/fetcher.sh) fetches the
+# prices 15 minutes earlier and pushes them to the `data` branch. This run
+# reads that file; if it is old or missing, the email says so.
 #
 # Security:
 # - No pull_request triggers: code from a pull request never runs here and
@@ -63,10 +68,20 @@ jobs:
             echo "No state branch yet: this run saves the baseline."
           fi
 
+      - name: Get the fetched prices
+        run: |
+          mkdir -p fetched
+          if git ls-remote --exit-code --heads origin data >/dev/null; then
+            git fetch --quiet --depth=1 origin data
+            git show FETCH_HEAD:prices.json.gz > fetched/prices.json.gz
+            git log -1 --format='Data branch: %s' FETCH_HEAD
+          else
+            echo "No data branch yet: the email will say nothing has been fetched."
+          fi
+
       - name: Run the pipeline
         id: pipeline
         env:
-          DATA_GOV_IN_API_KEY: ${{ secrets.DATA_GOV_IN_API_KEY }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
@@ -76,8 +91,10 @@ jobs:
           # Inputs go in through the environment, never pasted into the script.
           POST_NOW: ${{ inputs.post_now }}
           NOTE: ${{ inputs.note }}
+          SHADOW: ${{ vars.SHADOW }}  # repository variable; "true" marks emails "do not post"
         run: |
-          args=()
+          args=(--from-fetched fetched/prices.json.gz)
+          if [ "$SHADOW" = "true" ]; then args+=(--shadow); fi
           if [ "$POST_NOW" = "true" ]; then args+=(--now); fi
           if [ -n "$NOTE" ]; then args+=(--note "$NOTE"); fi
           set +e

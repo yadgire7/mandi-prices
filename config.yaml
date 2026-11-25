@@ -118,6 +118,13 @@ fetch:
   days: 2        # days fetched, counting today: 2 = today (t) and yesterday (t-1)
   keep_days: 2   # days kept and shown, counting today: 2 = only t and t-1
 
+# data.gov.in refuses GitHub's servers (outside India), so a machine in India
+# fetches the prices and pushes them to the `data` branch; GitHub processes
+# them. These limits decide when the run email complains that the data is old.
+fetcher:
+  warn_after_hours: 2    # older than this: WARN (the fetching machine missed a run)
+  fail_after_hours: 12   # older than this: FAIL, nothing posted
+
 checks:
   max_price: 1000000   # rupees per quintal; anything above is rejected
   jump_factor: 3       # a modal price this many times up or down is flagged

@@ -6,13 +6,24 @@ web pages and a short WhatsApp post, for the
 Every step is a fixed rule in code: no AI, and no price is typed by hand.
 The admin reviews each post and pastes it into the WhatsApp Channel.
 
-**Status: Phase 2 (shadow week) under way.** The pipeline runs on the admin's
-Mac four times a day, and every email is marked SHADOW so nothing is posted to
-the channel yet. The Phase 3 files (GitHub Actions workflows, Dependabot,
-hash-pinned requirements) are written and tested locally; see
-[Going live on GitHub](#going-live-on-github-phase-3). The full plan is in the "Shetkari Shala: Mandi
-Price Automation Plan" doc. Phase 0 findings are in
-[docs/phase0-findings.md](docs/phase0-findings.md).
+**Status: running on GitHub, with the Mac fetching.** data.gov.in refuses
+connections from GitHub's servers (they are outside India), so the admin's Mac
+fetches the prices and GitHub does everything else. Emails are marked SHADOW
+(do not post) while the repository variable `SHADOW` is `true`. The full plan
+is in the "Shetkari Shala: Mandi Price Automation Plan" doc. Phase 0 findings
+are in [docs/phase0-findings.md](docs/phase0-findings.md).
+
+```
+Mac (India)  05:45 11:45 17:45 23:45   scripts/fetcher.sh
+   fetch from data.gov.in -> push prices.json.gz to the `data` branch
+GitHub       06:00 12:00 18:00 00:00   .github/workflows/prices.yml
+   read the data branch -> check -> pages -> snapshot (`state` branch) -> email -> publish
+```
+
+If the Mac misses a fetch, GitHub still runs and the email says the data is
+old (WARN after 2 hours, FAIL after 12). If data.gov.in rejects the key on the
+Mac, the error travels with the data and the email says so. To move the fetch
+to an always-on machine in India later, run `scripts/fetcher.sh install` there.
 
 ## What one run does
 
@@ -65,20 +76,27 @@ snapshot under `out/dry-run/`, and saves the email instead of sending it.
 Sends one test email to check the mail settings. It calls no API and changes nothing.
 
 ```bash
-scripts/shadow.sh install
+scripts/fetcher.sh install
 ```
 
-Starts the shadow week: a real run at 00:00, 06:00, 12:00 and 18:00 on this
-Mac, with emails marked SHADOW. `scripts/shadow.sh status` shows the last runs,
-`scripts/shadow.sh run` does one now, and `scripts/shadow.sh uninstall` removes
-it. A run missed while the Mac sleeps happens once on wake; a run missed while
-it is shut down is skipped.
+Starts the Mac's fetch schedule (05:45, 11:45, 17:45, 23:45). `scripts/fetcher.sh status`
+shows the last push, `scripts/fetcher.sh run` fetches and pushes now, and
+`scripts/fetcher.sh uninstall` removes it. A fetch missed while the Mac sleeps
+happens once on wake; one missed while it is shut down is skipped.
+
+```bash
+./.venv/bin/python fetch_mandi_prices.py --fetch-only out/fetched/prices.json.gz
+./.venv/bin/python fetch_mandi_prices.py --from-fetched out/fetched/prices.json.gz --no-email
+```
+
+The two halves by hand: fetch and save (what the Mac does), then process a
+saved file (what GitHub does).
 
 ```bash
 ./.venv/bin/python -m unittest discover -s tests
 ```
 
-Runs the 67 tests, with no network or key needed.
+Runs the 79 tests, with no network or key needed.
 
 Every run saves its email as `out/email-<time>.eml` and its post as
 `out/post-<time>.txt`, and adds one line to `out/runs.tsv`: prices fetched,
@@ -203,7 +221,7 @@ Setup, in order. Steps marked **you** happen in your GitHub or GoDaddy account.
 7. **You:** Settings → Code security: turn on Dependabot alerts and security updates.
 8. Run "Mandi prices" once by hand from the Actions tab. The first run saves the
    baseline; check the email, the `state` branch and the page on the domain.
-9. Stop the laptop schedule: `scripts/shadow.sh uninstall`.
+9. While data.gov.in refuses GitHub: keep `scripts/fetcher.sh` installed on the Mac.
 
 GitHub turns off scheduled workflows in a public repository after 60 days
 without activity and emails a warning first; re-enabling is one click in the
@@ -219,7 +237,8 @@ Actions tab. Watch for that email.
 | `names_markets_mr.yaml` | Devanagari names for every market |
 | `names_produce_mr.yaml` | The produce glossary: Marathi names for every commodity and variety |
 | `probe_api.py` | The Phase 0 probe |
-| `scripts/shadow.sh` | Installs, checks and removes the shadow-week schedule (macOS launchd) |
+| `scripts/fetcher.sh` | The Mac's fetch-and-push schedule (macOS launchd) |
+| `mandi/fetched.py` | The fetched-data file: written on the Mac, read and age-checked on GitHub |
 | `scripts/check_setup.sh` | Checks `.env`, the API key, the mail settings and the GitHub secrets |
 | `tests/` | Tests for the pipeline and the probe |
 | `docs/phase0-findings.md` | What Phase 0 found |

@@ -64,6 +64,8 @@ def is_first_run_window(now_ist: dt.datetime, first_run: str) -> bool:
 
 def api_failure_reason(err: ApiError) -> str:
     """One plain line for the email: what went wrong and what to do."""
+    if getattr(err, "reason", None):   # e.g. fetched.StaleDataError
+        return err.reason
     status = getattr(err, "status", None)
     if status in (401, 403):
         return ("data.gov.in REJECTED THE API KEY (HTTP %d). Get a new key at data.gov.in "

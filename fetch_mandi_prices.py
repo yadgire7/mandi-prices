@@ -6,6 +6,8 @@
     python fetch_mandi_prices.py --dry-run --from-file rows.csv --at 2026-11-25T07:00
     python fetch_mandi_prices.py --shadow           # a trial run: real, but marked "do not post"
     python fetch_mandi_prices.py --test-email       # checks the mail settings, nothing else
+    python fetch_mandi_prices.py --fetch-only out/fetched.json.gz   # the laptop: fetch, save, stop
+    python fetch_mandi_prices.py --from-fetched fetched.json.gz     # GitHub: process pushed data
 
 A dry run reads saved data instead of the API, keeps its own snapshot under
 out/dry-run/, and saves the email to a file instead of sending it.
@@ -25,8 +27,8 @@ import sys
 import traceback
 from pathlib import Path
 
-from mandi import notify, pipeline
-from mandi.api import Client, canonical, load_api_key, parse_date
+from mandi import fetched, notify, pipeline
+from mandi.api import ApiError, Client, canonical, load_api_key, parse_date
 from mandi.config import load_config
 
 HERE = Path(__file__).resolve().parent
@@ -69,12 +71,18 @@ def parse_args(argv):
     p.add_argument("--no-email", action="store_true", help="save the email instead of sending it")
     p.add_argument("--shadow", action="store_true",
                    help="a trial run: the email is marked SHADOW and says not to post")
+    p.add_argument("--fetch-only", type=Path, metavar="FILE",
+                   help="only fetch from data.gov.in and save the raw data (or the error) to FILE")
+    p.add_argument("--from-fetched", type=Path, metavar="FILE",
+                   help="a real run from data another machine fetched, with checks on its age")
     p.add_argument("--test-email", action="store_true",
                    help="send one test email to check the mail settings; no API call, no pages")
     p.add_argument("--site", type=Path, help="where to build the pages")
     p.add_argument("--state", type=Path, help="the snapshot file")
     p.add_argument("--out", type=Path, default=HERE / "out", help="emails and posts are saved here")
     args = p.parse_args(argv)
+    if args.from_file and args.from_fetched:
+        p.error("use --from-file or --from-fetched, not both")
     if args.dry_run and not args.from_file:
         p.error("--dry-run needs --from-file, so that it makes no API calls")
     base = args.out / "dry-run" if args.dry_run else HERE
@@ -107,11 +115,33 @@ def send_test_email(env: dict) -> int:
     return 0
 
 
+def fetch_only(args, env: dict) -> int:
+    """Fetch today's window and save it for another machine to process. No pages, no email."""
+    now = dt.datetime.fromisoformat(args.at).replace(tzinfo=pipeline.IST) if args.at \
+        else dt.datetime.now(pipeline.IST)
+    cfg = load_config(args.config)
+    key, _ = load_api_key(env)
+    if not key:
+        print("no API key: set DATA_GOV_IN_API_KEY or add it to .env", file=sys.stderr)
+        return 1
+    try:
+        records = pipeline.api_source(Client(key), cfg)(now.date())
+    except ApiError as err:
+        fetched.write(args.fetch_only, now, error=err)
+        print(notify.scrub(f"Fetch FAILED, error saved for the run email: {err}", env), file=sys.stderr)
+        return 1
+    fetched.write(args.fetch_only, now, records)
+    print(f"Fetched {len(records)} records at {now:%Y-%m-%d %H:%M} IST into {args.fetch_only}")
+    return 0
+
+
 def main(argv=None, environ=os.environ) -> int:
     args = parse_args(argv)
     env = {**read_dotenv(HERE / ".env"), **environ}
     if args.test_email:
         return send_test_email(env)
+    if args.fetch_only:
+        return fetch_only(args, env)
     if args.at:
         now = dt.datetime.fromisoformat(args.at).replace(tzinfo=pipeline.IST)
     else:
@@ -123,6 +153,18 @@ def main(argv=None, environ=os.environ) -> int:
         cfg = load_config(args.config)
         if args.from_file:
             source = file_source(args.from_file, cfg)
+        elif args.from_fetched and not args.from_fetched.exists():
+            source = fetched.missing_source(args.from_fetched)
+        elif args.from_fetched:
+            data = fetched.read(args.from_fetched)
+            age = fetched.age_hours(data, now)
+            if (cfg["fetcher"]["warn_after_hours"] < age <= cfg["fetcher"]["fail_after_hours"]
+                    and data.error is None):
+                report.warnings.append(
+                    f"The fetching machine missed its last run: these prices were fetched "
+                    f"{age:.1f} hours ago ({data.fetched_at.astimezone(pipeline.IST):%d %b %H:%M} IST). "
+                    "Is the Mac awake and online?")
+            source = fetched.source(data, cfg, now)
         else:
             key, notes = load_api_key(env)
             for note in notes:

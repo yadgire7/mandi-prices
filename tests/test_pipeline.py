@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import fetch_mandi_prices  # noqa: E402
-from mandi import marathi, notify, pages, pipeline, rows, state  # noqa: E402
+from mandi import fetched, marathi, notify, pages, pipeline, rows, state  # noqa: E402
 from mandi import api  # noqa: E402
 from mandi.api import ApiError  # noqa: E402
 from mandi.config import ConfigError, load_config, validate_config  # noqa: E402
@@ -658,6 +658,101 @@ class CliTests(unittest.TestCase):
     def test_dry_run_requires_saved_data(self):
         with self.assertRaises(SystemExit):
             fetch_mandi_prices.parse_args(["--dry-run"])
+
+
+class FetchedDataTests(unittest.TestCase):
+    """Prices fetched on the Mac, pushed to the data branch, processed on GitHub."""
+    NOW = dt.datetime(2026, 11, 25, 12, 0, tzinfo=IST)
+
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.dir = Path(tmp.name)
+        self.file = self.dir / "prices.json.gz"
+
+    def cli(self, *extra, at="2026-11-25T12:00"):
+        out = self.dir / "out"
+        with unittest.mock.patch("sys.stdout", new_callable=io.StringIO), \
+                unittest.mock.patch("sys.stderr", new_callable=io.StringIO):
+            code = fetch_mandi_prices.main(
+                ["--from-fetched", str(self.file), "--no-email", "--at", at, "--out", str(out),
+                 "--site", str(self.dir / "site"), "--state", str(self.dir / "state.json"), *extra],
+                environ={})
+        msg = email.message_from_bytes(sorted(out.glob("email-*.eml"))[-1].read_bytes(),
+                                       policy=email.policy.default)
+        return code, msg["Subject"], msg.get_content()
+
+    def test_round_trip_keeps_records_and_time(self):
+        fetched.write(self.file, self.NOW, base_records())
+        back = fetched.read(self.file)
+        self.assertEqual((back.fetched_at, len(back.records), back.error), (self.NOW, 6, None))
+
+    def test_fresh_data_runs_normally(self):
+        fetched.write(self.file, self.NOW - dt.timedelta(minutes=15), base_records())
+        code, subject, body = self.cli()
+        self.assertEqual(code, 0)
+        self.assertIn("Prices accepted: 6", body)
+        self.assertNotIn("missed its last run", body)
+
+    def test_data_from_a_missed_run_warns(self):
+        fetched.write(self.file, self.NOW - dt.timedelta(hours=6, minutes=15), base_records())
+        self.cli(at="2026-11-25T06:00")                      # baseline first
+        code, subject, body = self.cli()
+        self.assertIn("[WARN]", subject)
+        self.assertIn("missed its last run", body)
+
+    def test_very_old_data_fails_without_posting(self):
+        fetched.write(self.file, self.NOW - dt.timedelta(hours=13), base_records())
+        code, subject, body = self.cli()
+        self.assertEqual(code, 1)
+        self.assertIn("[FAIL]", subject)
+        self.assertIn("NO FRESH DATA", body)
+        self.assertIn("No post this run.", body)
+
+    def test_missing_file_says_nothing_was_fetched(self):
+        code, subject, body = self.cli()
+        self.assertEqual(code, 1)
+        self.assertIn("NO DATA: nothing has been fetched", body)
+
+    def test_fetch_error_on_the_mac_reaches_the_email(self):
+        fetched.write(self.file, self.NOW, error=ApiError('HTTP 403: {"error": "Key not authorised"}', 403))
+        code, subject, body = self.cli()
+        self.assertEqual(code, 1)
+        self.assertIn("REJECTED THE API KEY", body)
+        self.assertIn("reported by the fetching machine", body)
+
+    def test_fetch_only_saves_the_error_and_never_the_key(self):
+        def failing(client, cfg):
+            def load(today):
+                raise ApiError("HTTP 403: Key not authorised [api-key=REDACTED]", 403)
+            return load
+        with unittest.mock.patch.object(pipeline, "api_source", failing), \
+                unittest.mock.patch.object(fetch_mandi_prices, "read_dotenv", return_value={}), \
+                unittest.mock.patch("sys.stderr", new_callable=io.StringIO):
+            code = fetch_mandi_prices.main(["--fetch-only", str(self.file)],
+                                           environ={"DATA_GOV_IN_API_KEY": "key-secret-abcdef"})
+        self.assertEqual(code, 1)
+        back = fetched.read(self.file)
+        self.assertEqual(back.status, 403)
+        import gzip
+        self.assertNotIn(b"key-secret-abcdef", gzip.decompress(self.file.read_bytes()))
+
+    def test_tampered_files_are_refused(self):
+        import gzip
+        for payload in (b"[]", json.dumps({"version": 9}).encode(),
+                        json.dumps({"version": 1, "fetched_at": "2026-11-25T12:00:00"}).encode(),
+                        json.dumps({"version": 1, "fetched_at": "2026-11-25T12:00:00+05:30",
+                                    "records": "x"}).encode()):
+            self.file.write_bytes(gzip.compress(payload))
+            with self.subTest(payload=payload[:40]), self.assertRaises(ValueError):
+                fetched.read(self.file)
+
+    def test_rows_from_the_file_are_checked_like_api_rows(self):
+        bad = rec(modal=-5)
+        fetched.write(self.file, self.NOW, base_records() + [bad, "not a record"])
+        code, subject, body = self.cli()
+        self.assertIn("Prices accepted: 6", body)
+        self.assertIn("Rejected:", body)
 
 
 class WorkflowTests(unittest.TestCase):
