@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT))
 
 import fetch_mandi_prices  # noqa: E402
 from mandi import marathi, notify, pages, pipeline, rows, state  # noqa: E402
+from mandi import api  # noqa: E402
 from mandi.api import ApiError  # noqa: E402
 from mandi.config import ConfigError, load_config, validate_config  # noqa: E402
 
@@ -263,6 +264,29 @@ class PipelineTests(unittest.TestCase):
         result = Run(self)(broken)
         self.assertEqual(result.status, "FAIL")
         self.assertIsNone(result.post)
+
+    def test_failure_email_names_the_cause(self):
+        cases = {403: "REJECTED THE API KEY", 401: "REJECTED THE API KEY", 429: "too many requests",
+                 503: "having problems", None: "Could not reach", 400: "returned an error"}
+        for status, words in cases.items():
+            def source(today, status=status):
+                raise ApiError(f"HTTP {status}: x [api-key=REDACTED]", status)
+            result = Run(self)(source)
+            with self.subTest(status=status):
+                self.assertEqual(result.status, "FAIL")
+                self.assertIn(words, result.summary[0])
+                self.assertIsNone(result.post)
+
+    def test_rejected_key_is_not_retried(self):
+        calls = []
+        def fetch(url):
+            calls.append(url)
+            return 403, b'{"error": "Key not authorised"}'
+        client = api.Client("secret-key-123456", fetch=fetch, sleep=lambda s: None)
+        with self.assertRaises(ApiError) as caught:
+            client.get("res", {})
+        self.assertEqual((len(calls), caught.exception.status), (1, 403))
+        self.assertNotIn("secret-key-123456", str(caught.exception))
 
     def test_no_usable_rows_is_a_fail(self):
         result = Run(self)([rec(modal=0, lo=0, hi=0)])

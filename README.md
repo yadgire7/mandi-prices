@@ -175,9 +175,9 @@ Two workflows do the work:
   reviewed pull requests, and publishes `site/` to GitHub Pages.
 - `.github/workflows/tests.yml` runs the tests on every pull request, with a
   read-only token and no secrets.
-- `.github/workflows/check-mail.yml`, started by hand, sends one test email
-  with the repository's secrets, to prove they work:
-  `gh workflow run check-mail.yml -R yadgire7/mandi-prices`.
+- `.github/workflows/check-setup.yml`, started by hand, checks from GitHub's
+  servers that data.gov.in is reachable, the API key is accepted and the mail
+  secrets send a test email: `gh workflow run check-setup.yml -R yadgire7/mandi-prices`.
 
 Setup, in order. Steps marked **you** happen in your GitHub or GoDaddy account.
 

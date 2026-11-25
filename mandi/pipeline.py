@@ -62,6 +62,27 @@ def is_first_run_window(now_ist: dt.datetime, first_run: str) -> bool:
     return now_ist.time() >= dt.time(hour, minute)
 
 
+def api_failure_reason(err: ApiError) -> str:
+    """One plain line for the email: what went wrong and what to do."""
+    status = getattr(err, "status", None)
+    if status in (401, 403):
+        return ("data.gov.in REJECTED THE API KEY (HTTP %d). Get a new key at data.gov.in "
+                "(sign in, then My Account), then update DATA_GOV_IN_API_KEY in GitHub "
+                "(Settings > Secrets and variables > Actions) and in .env. "
+                "Check it with scripts/check_setup.sh." % status)
+    if status == 429:
+        return ("data.gov.in refused: too many requests (HTTP 429). It usually clears by "
+                "itself; the next run will try again.")
+    if status is not None and status >= 500:
+        return (f"data.gov.in is having problems (HTTP {status}). Nothing to fix on our side; "
+                "the next run will try again.")
+    if status is None:
+        return ("Could not reach data.gov.in (network error or timeout, after retries). "
+                "The next run will try again.")
+    return (f"data.gov.in returned an error (HTTP {status}); see the warning below. "
+            "If it repeats, the API may have changed.")
+
+
 def run(cfg: dict, source: Callable[[dt.date], list[dict]], opts: Options) -> Result:
     result = Result()
     now = opts.now.astimezone(IST)
@@ -71,7 +92,8 @@ def run(cfg: dict, source: Callable[[dt.date], list[dict]], opts: Options) -> Re
         records = source(today)
     except ApiError as err:
         result.status = "FAIL"
-        result.summary.append("No data: data.gov.in did not answer. Nothing was posted.")
+        result.summary.append(api_failure_reason(err))
+        result.summary.append("Nothing was posted, and the pages and snapshot were left as they were.")
         result.warnings.append(str(err))
         return result
     result.info.append(f"Records fetched: {len(records)}")

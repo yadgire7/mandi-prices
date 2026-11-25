@@ -33,7 +33,15 @@ FIELDS = ("state", "district", "market", "commodity", "variety", "grade",
 
 
 class ApiError(Exception):
-    """The API could not answer, after retries where retrying could help."""
+    """The API could not answer, after retries where retrying could help.
+
+    `status` is the last HTTP status (None for network errors), so callers can
+    tell a rejected key from an outage.
+    """
+
+    def __init__(self, message: str, status: int | None = None):
+        super().__init__(message)
+        self.status = status
 
 
 def redact(url: str) -> str:
@@ -72,7 +80,7 @@ class Client:
     def get(self, resource_id: str, params: dict) -> dict:
         query = {"api-key": self.api_key, "format": "json", **params}
         url = API_BASE + resource_id + "?" + urllib.parse.urlencode(query, safe="[]")
-        problem = "no attempt made"
+        problem, last_status = "no attempt made", None
         for attempt in range(RETRIES + 1):
             if attempt:
                 self.sleep(2 ** attempt)
@@ -80,8 +88,10 @@ class Client:
             try:
                 status, body = self.fetch(url)
             except OSError as err:  # URLError, timeouts and resets are all OSError
-                problem = f"network error: {err.__class__.__name__}"
+                reason = getattr(err, "reason", None) or err  # e.g. "[Errno 111] Connection refused"
+                problem, last_status = f"network error: {err.__class__.__name__}: {str(reason)[:200]}", None
                 continue
+            last_status = status
             if status == 200:
                 try:
                     data = json.loads(body)
@@ -96,7 +106,7 @@ class Client:
             problem = f"HTTP {status}: {snippet}"
             if 400 <= status < 500 and status != 429:
                 break  # a client error will not fix itself on retry
-        raise ApiError(f"{problem} [{redact(url)}]".replace(self.api_key, "REDACTED"))
+        raise ApiError(f"{problem} [{redact(url)}]".replace(self.api_key, "REDACTED"), last_status)
 
     def records(self, resource_id: str, filters: dict) -> tuple[list[dict], int | None]:
         """Every record matching the filters, page by page."""

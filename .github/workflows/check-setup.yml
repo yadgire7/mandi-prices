@@ -1,0 +1,63 @@
+# Checks the setup from GitHub's own servers: can they reach data.gov.in, is
+# the API key accepted, and do the mail secrets send a test email.
+# Started by hand only (Actions tab, or: gh workflow run check-setup.yml).
+# Prints only results, never a secret. Fetches no prices, saves nothing.
+name: Check setup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.14"
+      - run: python -m pip install --require-hashes --no-deps -r requirements.txt
+
+      - name: Reach data.gov.in (no key)
+        run: |
+          echo "Runner public IP: $(curl -s -m 10 https://api.ipify.org || echo unknown)"
+          echo "DNS: $(getent hosts api.data.gov.in || echo 'lookup failed')"
+          curl -sS -m 20 -o /dev/null --connect-timeout 10 \
+            -w 'HTTP %{http_code}, connect %{time_connect}s, TLS %{time_appconnect}s, remote %{remote_ip}\n' \
+            "https://api.data.gov.in/resource/35985678-0d79-46b4-9ed6-6f13308a1d24?format=json&limit=1" \
+            || echo "curl could not complete the request (exit $?)"
+
+      - name: API key accepted
+        env:
+          DATA_GOV_IN_API_KEY: ${{ secrets.DATA_GOV_IN_API_KEY }}
+        run: |
+          python - <<'PY'
+          import sys
+          from fetch_mandi_prices import HERE
+          from mandi.api import Client, ApiError
+          from mandi.config import load_config
+          import os
+          cfg = load_config(HERE / "config.yaml")
+          try:
+              data = Client(os.environ["DATA_GOV_IN_API_KEY"]).get(
+                  cfg["api"]["resource"], {"limit": 1, cfg["api"]["state_filter"]: cfg["state"]})
+          except ApiError as err:
+              print(f"FAILED (status {err.status}): {err}"); sys.exit(1)
+          print(f"OK: key accepted, {data.get('total', '?')} Maharashtra rows")
+          PY
+
+      - name: Send a test email
+        if: ${{ !cancelled() }}
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python fetch_mandi_prices.py --test-email
