@@ -31,6 +31,7 @@ class Result:
     summary: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     info: list[str] = field(default_factory=list)
+    stats: dict = field(default_factory=dict)  # one line of the run log (runs.tsv)
 
 
 def clean_note(note: str) -> str:
@@ -77,6 +78,12 @@ def run(cfg: dict, source: Callable[[dt.date], list[dict]], opts: Options) -> Re
 
     prices, rejects = rows.validate(records, cfg, today)
     result.info.append(f"Prices accepted: {len(prices)}")
+    yesterday = today - dt.timedelta(days=1)
+    result.stats.update(
+        fetched=len(records), accepted=len(prices), rejected=len(rejects),
+        today=sum(p.date == today for p in prices),
+        yesterday=sum(p.date == yesterday for p in prices),
+        districts_today=len({norm(p.district) for p in prices if p.date == today}))
     duplicates = len(records) - len(prices) - len(rejects)
     if duplicates > 0:
         result.info.append(f"Exact duplicate records merged: {duplicates}")
@@ -129,9 +136,11 @@ def run(cfg: dict, source: Callable[[dt.date], list[dict]], opts: Options) -> Re
     for district in built["unknown_districts"]:
         result.warnings.append(f"Unknown district {district!r}: shown on the 'other' page; add it to config.yaml")
 
+    tracked_empty = 0
     for mandi in cfg.get("mandis") or []:
         markets = {norm(m) for m in mandi["market"]}
         if not any(series[1] in markets for series in latest):
+            tracked_empty += 1
             # Info, not a warning: a mandi can be quiet for weeks, and a warning
             # that fires on every run teaches everyone to ignore warnings.
             result.info.append(f"Tracked mandi {mandi['key']} has no prices in the last "
@@ -148,6 +157,9 @@ def run(cfg: dict, source: Callable[[dt.date], list[dict]], opts: Options) -> Re
         f"{len(new)} new and {len(changed)} corrected prices from {len(changed_districts)} districts."
         if changed_keys else ("First run: baseline saved." if not snap.exists
                               else "Nothing new since the last run."))
+    result.stats.update(new=len(new), corrected=len(changed), jumps=len(jumps & {
+        p.series for p in merged.values() if p.key in changed_keys}),
+        tracked_empty=tracked_empty, post="yes" if want_post else "no")
     if want_post and not changed_keys:
         result.summary.append("Posting anyway: " + ("first run of the day." if first else "the admin asked for a post."))
 

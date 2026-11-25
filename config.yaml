@@ -124,8 +124,9 @@ checks:
   max_text: 120        # longest market, crop, variety or grade name accepted
 
 site:
-  # The GitHub Pages address, set in Phase 3. While empty, posts leave out links.
-  base_url: ""
+  # The GitHub Pages address. Posts link here; empty leaves the link out.
+  # GitHub Pages with a custom domain; it goes live in Phase 3.
+  base_url: "https://bajarbhav.shetkarishala.com/"
 
 # One page per district. `name` is AGMARKNET's spelling; `aliases` are other
 # spellings the data has used for the same district. A district in the data
@@ -189,14 +190,13 @@ market_names_file: names_markets_mr.yaml
 # Marathi names for every commodity and variety: the produce glossary.
 produce_names_file: names_produce_mr.yaml
 
-# How run times are named on the pages and in the post. A run gets the label
-# of the last part that has started; runs before the first part (00:00 to
-# 04:00) count as the previous day's night.
+# How run times are named on the pages and in the post, followed by the time
+# on a 12-hour clock: "सकाळ ६:००". A run gets the label of the last part that
+# has started: 12 am to 12 pm सकाळ, 12 pm to 6 pm दुपार, 6 pm to 12 am संध्याकाळ.
 day_parts_mr:
-  - {from: 4, mr: "सकाळ"}
-  - {from: 11, mr: "दुपार"}
-  - {from: 16, mr: "संध्याकाळ"}
-  - {from: 21, mr: "रात्री"}
+  - {from: 0, mr: "सकाळ"}
+  - {from: 12, mr: "दुपार"}
+  - {from: 18, mr: "संध्याकाळ"}
 
 # Tooltips and the glossary at the foot of each page, from the AGMARKNET
 # terminology glossary (agmarknet-glossary-mr.md).
@@ -246,4 +246,4 @@ text_mr:
   post_links: "सर्व जिल्ह्यांचे सर्व भाव: {url}"
   post_footer: "भाव रु./क्विंटल (१०० किलो), घाऊक, प्रचलित भाव. विक्रीपूर्वी आपल्या बाजार समितीत खात्री करा."
   post_glossary: "{term} = {name}"
-  post_channel: ""   # one line linking the YouTube channel, once you write it
+  post_channel: "📺 शेतकरी शाळा YouTube: https://www.youtube.com/@shetkarishalaMH"

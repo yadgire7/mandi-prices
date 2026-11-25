@@ -6,8 +6,11 @@ web pages and a short WhatsApp post, for the
 Every step is a fixed rule in code: no AI, and no price is typed by hand.
 The admin reviews each post and pastes it into the WhatsApp Channel.
 
-**Status: Phase 1 done (the pipeline runs locally).** Next is Phase 2: a week
-of shadow runs on a laptop. The full plan is in the "Shetkari Shala: Mandi
+**Status: Phase 2 (shadow week) under way.** The pipeline runs on the admin's
+Mac four times a day, and every email is marked SHADOW so nothing is posted to
+the channel yet. The Phase 3 files (GitHub Actions workflows, Dependabot,
+hash-pinned requirements) are written and tested locally; see
+[Going live on GitHub](#going-live-on-github-phase-3). The full plan is in the "Shetkari Shala: Mandi
 Price Automation Plan" doc. Phase 0 findings are in
 [docs/phase0-findings.md](docs/phase0-findings.md).
 
@@ -24,14 +27,15 @@ Price Automation Plan" doc. Phase 0 findings are in
    AGMARKNET reports Mumbai City and Suburban as one district).
 5. Writes the WhatsApp post if anything is new or changed, on the first run
    after 06:00 IST, or when the admin asks with `--now`. Runs are named by part
-   of day (सकाळ, दुपार, संध्याकाळ, रात्री), and changes are marked 🟢▲ up and 🔴▼ down.
+   of day and time (सकाळ ६:००, दुपार १२:००, संध्याकाळ ६:००), the post links to
+   the district pages and the channel, and changes are marked 🟢▲ up and 🔴▼ down.
 6. Saves the snapshot and sends one email: OK, WARN or FAIL, with the post
    inside. If the run crashes, it still sends a FAIL email.
 
 ## Commands
 
 ```bash
-python3 -m venv .venv && ./.venv/bin/pip install -r requirements.txt
+python3 -m venv .venv && ./.venv/bin/pip install --require-hashes -r requirements.txt
 ```
 
 ```bash
@@ -55,13 +59,32 @@ A dry run: reads saved rows instead of the API, keeps its own site and
 snapshot under `out/dry-run/`, and saves the email instead of sending it.
 
 ```bash
+./.venv/bin/python fetch_mandi_prices.py --test-email
+```
+
+Sends one test email to check the mail settings. It calls no API and changes nothing.
+
+```bash
+scripts/shadow.sh install
+```
+
+Starts the shadow week: a real run at 00:00, 06:00, 12:00 and 18:00 on this
+Mac, with emails marked SHADOW. `scripts/shadow.sh status` shows the last runs,
+`scripts/shadow.sh run` does one now, and `scripts/shadow.sh uninstall` removes
+it. A run missed while the Mac sleeps happens once on wake; a run missed while
+it is shut down is skipped.
+
+```bash
 ./.venv/bin/python -m unittest discover -s tests
 ```
 
-Runs the 55 tests, with no network or key needed.
+Runs the 67 tests, with no network or key needed.
 
 Every run saves its email as `out/email-<time>.eml` and its post as
-`out/post-<time>.txt`. Exit code 1 means the run failed.
+`out/post-<time>.txt`, and adds one line to `out/runs.tsv`: prices fetched,
+accepted and rejected, how many are for today and yesterday, districts with
+today's prices, tracked mandis with none, what changed, and whether the email
+went. Exit code 1 means the run failed or the email could not be sent.
 
 ## Fetch the data by hand
 
@@ -88,7 +111,7 @@ Everything that might change lives in `config.yaml`:
 - `mandis`: the tracked mandis whose headline crops appear in the post
 - `districts`: one page each, with AGMARKNET's spelling, aliases and Marathi name
 - `checks`: the price cap, the jump factor and the longest name accepted
-- `site.base_url`: the GitHub Pages address, set in Phase 3
+- `site.base_url`: the GitHub Pages address the post links to (live from Phase 3)
 - `names_mr`, `glossary_mr` and `text_mr`: every Marathi word on the pages and
   in the post, including the tooltips for FAQ, Non-FAQ and the column headings
 - `names_produce_mr.yaml`: the produce glossary, Marathi names for all 113
@@ -112,6 +135,20 @@ never committed. In Phase 3 they move to GitHub Secrets.
 | `SMTP_USER`, `SMTP_PASSWORD` | The sending mailbox and its app password |
 | `MAIL_FROM`, `MAIL_TO` | Sender and the admin's address |
 
+### Setting up the mailbox (Gmail)
+
+1. Use a Google account with 2-Step Verification turned on. A separate account
+   just for the bot is safer than your own.
+2. Open Google Account → Security → App passwords, create one named
+   "mandi-prices", and copy the 16 characters.
+3. In `.env`, set `SMTP_USER` and `MAIL_FROM` to that Gmail address,
+   `SMTP_PASSWORD` to the app password, and `MAIL_TO` to where you read mail.
+   `SMTP_HOST=smtp.gmail.com` and `SMTP_PORT=465` are already there.
+4. Run `./.venv/bin/python fetch_mandi_prices.py --test-email`.
+
+An app password only lets this program send mail; you can revoke it on the same
+page at any time without changing your Google password.
+
 Never paste a secret into chat, a commit, a URL or an issue. The pipeline
 scrubs both secrets from every email and error message it writes.
 
@@ -127,6 +164,44 @@ scrubs both secrets from every email and error message it writes.
 - The admin's note is stripped of control characters and capped at 1,000
   characters.
 
+## Going live on GitHub (Phase 3)
+
+Two workflows do the work:
+
+- `.github/workflows/prices.yml` runs the pipeline at 06:00, 12:00, 18:00 and
+  00:00 IST (the tests fail if its schedule stops matching `config.yaml`), or
+  by hand from the Actions tab with "post now" and a note. It keeps the
+  snapshot on a separate `state` branch, so `main` only changes through
+  reviewed pull requests, and publishes `site/` to GitHub Pages.
+- `.github/workflows/tests.yml` runs the tests on every pull request, with a
+  read-only token and no secrets.
+
+Setup, in order. Steps marked **you** happen in your GitHub or GoDaddy account.
+
+1. **You:** create the public repository `mandi-prices` and push `main`.
+2. **You:** Settings → Secrets and variables → Actions: add `DATA_GOV_IN_API_KEY`,
+   `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM`, `MAIL_TO`.
+   Secrets cannot be read back, are hidden in logs and never reach pull requests.
+3. **You:** Settings → Pages → Source: **GitHub Actions**.
+4. ~~**You:** verify `shetkarishala.com` for GitHub Pages~~ Done 25 Nov 2026.
+   Keep the `_github-pages-challenge-…` TXT record in GoDaddy's DNS for good:
+   GitHub re-checks it.
+5. **You:** in GoDaddy DNS add `CNAME bajarbhav → <your GitHub username>.github.io`,
+   then in the repo's Settings → Pages set the custom domain to
+   `bajarbhav.shetkarishala.com` and tick **Enforce HTTPS**.
+6. **You:** Settings → Rules → new branch ruleset on `main`: require a pull
+   request and the "Tests" check, block force pushes and deletion, bypass for
+   you only. Settings → Actions → General: require approval for workflows from
+   all outside contributors.
+7. **You:** Settings → Code security: turn on Dependabot alerts and security updates.
+8. Run "Mandi prices" once by hand from the Actions tab. The first run saves the
+   baseline; check the email, the `state` branch and the page on the domain.
+9. Stop the laptop schedule: `scripts/shadow.sh uninstall`.
+
+GitHub turns off scheduled workflows in a public repository after 60 days
+without activity and emails a warning first; re-enabling is one click in the
+Actions tab. Watch for that email.
+
 ## Files
 
 | Path | What it is |
@@ -137,7 +212,9 @@ scrubs both secrets from every email and error message it writes.
 | `names_markets_mr.yaml` | Devanagari names for every market |
 | `names_produce_mr.yaml` | The produce glossary: Marathi names for every commodity and variety |
 | `probe_api.py` | The Phase 0 probe |
+| `scripts/shadow.sh` | Installs, checks and removes the shadow-week schedule (macOS launchd) |
 | `tests/` | Tests for the pipeline and the probe |
 | `docs/phase0-findings.md` | What Phase 0 found |
-| `state/` | The snapshot each run leaves for the next (committed in Phase 3) |
-| `site/`, `out/`, `data/` | Built pages, emails, probe output (all ignored by git) |
+| `.github/` | The scheduled and test workflows, and Dependabot settings |
+| `state/` | The snapshot each run leaves for the next (ignored on `main`; on GitHub it lives on the `state` branch) |
+| `site/`, `out/`, `data/` | Built pages, emails, the run log, probe output (all ignored by git) |

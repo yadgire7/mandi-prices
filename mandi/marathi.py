@@ -53,8 +53,8 @@ def short_date(d: dt.date) -> str:
 def day_part(moment: dt.datetime, parts: list[dict]) -> tuple[dt.date, str]:
     """The date and part-of-day word for a run, e.g. (25 Nov, "सकाळ").
 
-    Runs before the first part of the day (after midnight) belong to the
-    previous day's night, so a 00:00 run on the 26th reads "25 Nov, night".
+    A run gets the label of the last part that has started. If the first part
+    starts after midnight, earlier runs belong to the previous day's last part.
     """
     started = [p for p in parts if p["from"] <= moment.hour]
     if started:
@@ -62,10 +62,16 @@ def day_part(moment: dt.datetime, parts: list[dict]) -> tuple[dt.date, str]:
     return moment.date() - dt.timedelta(days=1), parts[-1]["mr"]
 
 
+def clock(moment: dt.datetime) -> str:
+    """12-hour time in Devanagari digits: 00:00 is "१२:००", 18:30 is "६:३०"."""
+    return digits(f"{moment.hour % 12 or 12}:{moment.minute:02d}")
+
+
 def when(moment: dt.datetime, parts: list[dict] | None = None) -> str:
+    """E.g. "२५ नोव्हें २०२६, दुपार १२:००"; without parts, a 24-hour time."""
     if parts:
         day, label = day_part(moment, parts)
-        return f"{digits(day.day)} {MONTHS[day.month - 1]} {digits(day.year)}, {label}"
+        return f"{digits(day.day)} {MONTHS[day.month - 1]} {digits(day.year)}, {label} {clock(moment)}"
     return (f"{digits(moment.day)} {MONTHS[moment.month - 1]} {digits(moment.year)}, "
             f"{digits(moment.strftime('%H:%M'))}")
 

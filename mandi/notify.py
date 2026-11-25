@@ -33,6 +33,7 @@ class Report:
     warnings: list[str] = field(default_factory=list)
     info: list[str] = field(default_factory=list)
     log_url: str | None = None
+    tag: str = ""                    # e.g. SHADOW during the trial week
 
 
 def scrub(text: str, env=os.environ) -> str:
@@ -45,7 +46,8 @@ def scrub(text: str, env=os.environ) -> str:
 
 def subject(report: Report) -> str:
     extra = " - post ready" if report.post else ""
-    return f"[{report.status}] Mandi prices {report.when}{extra}"
+    tag = f"[{report.tag}] " if report.tag else ""
+    return f"{tag}[{report.status}] Mandi prices {report.when}{extra}"
 
 
 def body(report: Report, max_warnings: int = 40) -> str:

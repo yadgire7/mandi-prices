@@ -1,12 +1,16 @@
 """Tests for the Phase 1 pipeline: checks, snapshot, pages, post, email, CLI."""
 import copy
 import datetime as dt
+import email
+import email.policy
 import html
+import io
 import json
 import re
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -123,12 +127,14 @@ class MarathiTests(unittest.TestCase):
 
     def test_runs_are_named_by_part_of_day(self):
         parts = CFG["day_parts_mr"]
-        at = lambda day, hh: dt.datetime(2026, 11, day, hh, 0, tzinfo=IST)
-        self.assertEqual(marathi.when(at(25, 6), parts), "२५ नोव्हें २०२६, सकाळ")
-        self.assertEqual(marathi.when(at(25, 12), parts), "२५ नोव्हें २०२६, दुपार")
-        self.assertEqual(marathi.when(at(25, 18), parts), "२५ नोव्हें २०२६, संध्याकाळ")
-        self.assertEqual(marathi.when(at(26, 0), parts), "२५ नोव्हें २०२६, रात्री")
-        self.assertEqual(marathi.when(at(25, 22), parts), "२५ नोव्हें २०२६, रात्री")
+        at = lambda day, hh, mm=0: dt.datetime(2026, 11, day, hh, mm, tzinfo=IST)
+        self.assertEqual(marathi.when(at(26, 0), parts), "२६ नोव्हें २०२६, सकाळ १२:००")
+        self.assertEqual(marathi.when(at(25, 6), parts), "२५ नोव्हें २०२६, सकाळ ६:००")
+        self.assertEqual(marathi.when(at(25, 11, 59), parts), "२५ नोव्हें २०२६, सकाळ ११:५९")
+        self.assertEqual(marathi.when(at(25, 12), parts), "२५ नोव्हें २०२६, दुपार १२:००")
+        self.assertEqual(marathi.when(at(25, 17, 45), parts), "२५ नोव्हें २०२६, दुपार ५:४५")
+        self.assertEqual(marathi.when(at(25, 18), parts), "२५ नोव्हें २०२६, संध्याकाळ ६:००")
+        self.assertEqual(marathi.when(at(25, 23, 30), parts), "२५ नोव्हें २०२६, संध्याकाळ ११:३०")
 
 
 class ValidationTests(unittest.TestCase):
@@ -261,6 +267,18 @@ class PipelineTests(unittest.TestCase):
     def test_no_usable_rows_is_a_fail(self):
         result = Run(self)([rec(modal=0, lo=0, hi=0)])
         self.assertEqual(result.status, "FAIL")
+
+    def test_run_reports_coverage_stats(self):
+        run = Run(self)
+        run(base_records())
+        result = run(base_records() + [rec(market="APMC Akola", district="Akola",
+                                           commodity="Soyabean", variety="Yellow", grade="FAQ",
+                                           modal=8100, day=TODAY - dt.timedelta(days=1))], at="13:00")
+        self.assertEqual(result.stats["today"], 5)
+        self.assertEqual(result.stats["yesterday"], 2)
+        self.assertEqual(result.stats["districts_today"], 4)
+        self.assertEqual((result.stats["new"], result.stats["corrected"]), (1, 0))
+        self.assertEqual(result.stats["post"], "yes")
 
     def test_unusual_jump_is_flagged(self):
         run = Run(self)
@@ -449,13 +467,20 @@ class GroupingTests(unittest.TestCase):
 
 class PostTests(unittest.TestCase):
     def test_links_only_when_base_url_set(self):
-        run = Run(self)
-        self.assertNotIn("http", run(base_records()).post)
         cfg = copy.deepcopy(CFG)
+        cfg["site"]["base_url"] = ""
+        cfg["text_mr"]["post_channel"] = ""
+        self.assertNotIn("http", Run(self)(base_records(), cfg=cfg).post)
         cfg["site"]["base_url"] = "https://example.github.io/mandi-prices"
-        run2 = Run(self)
-        post_text = run2(base_records(), cfg=cfg).post
+        post_text = Run(self)(base_records(), cfg=cfg).post
         self.assertIn("https://example.github.io/mandi-prices/", post_text)
+        self.assertNotIn("mandi-prices//", post_text)
+
+    def test_post_ends_with_link_then_channel_line(self):
+        lines = Run(self)(base_records()).post.splitlines()
+        link = CFG["text_mr"]["post_links"].format(url=CFG["site"]["base_url"])
+        self.assertIn(link, lines)
+        self.assertEqual(lines[-1], CFG["text_mr"]["post_channel"])
 
     def test_headline_crop_without_prices_says_so(self):
         post_text = Run(self)(base_records()).post
@@ -553,9 +578,111 @@ class CliTests(unittest.TestCase):
             email = next((tmp / "out").glob("email-*.eml")).read_bytes().decode("utf-8", "replace")
             self.assertIn("[FAIL]", email)
 
+    def test_every_run_adds_a_line_to_the_run_log(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            data = tmp / "rows.json"
+            data.write_text(json.dumps({"records": [
+                {k.title(): v for k, v in r.items()} for r in base_records()]}))
+            for at in ("2026-11-25T07:00", "2026-11-25T13:00"):
+                fetch_mandi_prices.main(["--dry-run", "--from-file", str(data), "--at", at,
+                                         "--out", str(tmp / "out")], environ={})
+            lines = (tmp / "out" / "dry-run" / "runs.tsv").read_text().splitlines()
+            self.assertEqual(lines[0].split("\t"), list(fetch_mandi_prices.LOG_COLUMNS))
+            self.assertEqual(len(lines), 3)
+            row = dict(zip(fetch_mandi_prices.LOG_COLUMNS, lines[2].split("\t")))
+            self.assertEqual((row["run_ist"], row["today"], row["yesterday"], row["email"]),
+                             ("2026-11-25 13:00", "5", "1", "saved"))
+            self.assertFalse((tmp / "out" / "runs.tsv").exists())  # dry runs keep their own log
+
+    def test_shadow_run_is_marked_do_not_post(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            data = tmp / "rows.json"
+            data.write_text(json.dumps({"records": [
+                {k.title(): v for k, v in r.items()} for r in base_records()]}))
+            fetch_mandi_prices.main(["--dry-run", "--shadow", "--from-file", str(data),
+                                     "--at", "2026-11-25T07:00", "--out", str(tmp / "out")], environ={})
+            msg = email.message_from_bytes(next((tmp / "out").glob("email-*.eml")).read_bytes(),
+                                           policy=email.policy.default)
+            self.assertTrue(msg["Subject"].startswith("[SHADOW] ["))
+            self.assertIn("do not post it to the channel", msg.get_content())
+
+    def test_test_email_needs_mail_settings_and_hides_secrets(self):
+        env = {"DATA_GOV_IN_API_KEY": "key-secret-abcdef"}
+        with unittest.mock.patch.object(fetch_mandi_prices, "read_dotenv", return_value={}), \
+                unittest.mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertEqual(fetch_mandi_prices.main(["--test-email"], environ=env), 1)
+        self.assertIn("mail settings missing", err.getvalue())
+        self.assertNotIn("key-secret-abcdef", err.getvalue())
+
     def test_dry_run_requires_saved_data(self):
         with self.assertRaises(SystemExit):
             fetch_mandi_prices.parse_args(["--dry-run"])
+
+
+class WorkflowTests(unittest.TestCase):
+    """The GitHub workflows: schedule matches config.yaml, and the security rules hold."""
+
+    @staticmethod
+    def load(name):
+        import yaml
+        return yaml.safe_load((ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8"))
+
+    @staticmethod
+    def triggers(flow):
+        return flow.get("on", flow.get(True))  # YAML 1.1 reads a bare `on` as true
+
+    @staticmethod
+    def cron_times(expr):
+        minute, hour = expr.split()[:2]
+        if "/" in hour:
+            span, step = hour.split("/")
+            lo, hi = (int(x) for x in span.split("-"))
+            hours = range(lo, hi + 1, int(step))
+        else:
+            hours = [int(h) for h in hour.split(",")]
+        return {(h, int(minute)) for h in hours}
+
+    def test_schedule_matches_config(self):
+        crons = [c["cron"] for c in self.triggers(self.load("prices.yml"))["schedule"]]
+        every = CFG["schedule"]["every_hours"]
+        hh, mm = (int(x) for x in CFG["schedule"]["first_run_ist"].split(":"))
+        first = dt.datetime(2026, 1, 1, hh, mm, tzinfo=IST)
+        expected = set()
+        for k in range(24 // every):
+            utc = (first + dt.timedelta(hours=k * every)).astimezone(dt.timezone.utc)
+            expected.add((utc.hour, utc.minute))
+        got = set().union(*(self.cron_times(c) for c in crons))
+        self.assertEqual(got, expected, "prices.yml cron no longer matches schedule in config.yaml")
+
+    def test_workflows_follow_the_security_rules(self):
+        for path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+            flow = self.load(path.name)
+            with self.subTest(path.name):
+                self.assertNotIn("pull_request_target", self.triggers(flow))
+                self.assertIn("permissions", flow, "set token permissions explicitly")
+                for job in flow["jobs"].values():
+                    for step in job["steps"]:
+                        if "uses" in step:
+                            self.assertRegex(step["uses"], r"^[\w.-]+/[\w.-]+@[0-9a-f]{40}$",
+                                             "pin every action to a full commit SHA")
+                        if step.get("uses", "").startswith("actions/checkout@"):
+                            self.assertIs(step.get("with", {}).get("persist-credentials"), False)
+                        # ${{ }} inside a shell script is an injection risk; use env instead
+                        self.assertNotRegex(step.get("run", ""), r"\$\{\{")
+
+    def test_secrets_never_reach_pull_requests(self):
+        prices = self.load("prices.yml")
+        self.assertEqual(set(self.triggers(prices)), {"schedule", "workflow_dispatch"})
+        tests = (ROOT / ".github" / "workflows" / "tests.yml").read_text(encoding="utf-8")
+        self.assertNotIn("secrets.", tests)
+        self.assertEqual(self.load("tests.yml")["permissions"], {"contents": "read"})
+
+    def test_requirements_are_hash_pinned(self):
+        text = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+        self.assertRegex(text, r"(?m)^PyYAML==[\d.]+ ")
+        self.assertRegex(text, r"--hash=sha256:[0-9a-f]{64}")
 
 
 if __name__ == "__main__":

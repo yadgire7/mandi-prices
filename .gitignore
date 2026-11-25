@@ -12,3 +12,4 @@ data/
 # Pipeline output
 out/
 site/
+state/

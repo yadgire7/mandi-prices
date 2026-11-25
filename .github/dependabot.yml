@@ -1,0 +1,12 @@
+# Weekly pull requests for new versions of the pinned actions and PyYAML.
+# The admin reviews and merges them; nothing updates by itself.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly

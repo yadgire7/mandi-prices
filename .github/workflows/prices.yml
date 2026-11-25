@@ -1,0 +1,138 @@
+# The pipeline on GitHub: fetch prices, build the pages, email the admin,
+# save the snapshot, publish the pages. Runs on a schedule, or by hand from
+# the Actions tab (only people with write access, i.e. the admin, can do that).
+#
+# Security:
+# - No pull_request triggers: code from a pull request never runs here and
+#   never sees a secret. Pull requests only run tests.yml, without secrets.
+# - The checkout keeps no token, so the pipeline itself cannot push anything.
+#   Only the "Save the snapshot" step gets a token, to push one file to the
+#   `state` branch.
+# - Every action is pinned to a full commit SHA; Dependabot proposes updates.
+name: Mandi prices
+
+on:
+  schedule:
+    # 00:30, 06:30, 12:30, 18:30 UTC = 06:00, 12:00, 18:00, 00:00 IST.
+    # tests/test_pipeline.py fails if this stops matching config.yaml.
+    - cron: "30 0-23/6 * * *"
+  workflow_dispatch:
+    inputs:
+      post_now:
+        description: "Always produce a post (the admin's run)"
+        type: boolean
+        default: false
+      note:
+        description: "Message placed above the prices (optional)"
+        type: string
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: mandi-prices
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write  # used only by "Save the snapshot"
+    outputs:
+      site: ${{ steps.pipeline.outputs.site }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: "3.14"
+
+      - name: Install
+        run: python -m pip install --require-hashes --no-deps -r requirements.txt
+
+      - name: Restore the last snapshot
+        run: |
+          mkdir -p state
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --quiet --depth=1 origin state
+            git show FETCH_HEAD:state/prices.json > state/prices.json
+          else
+            echo "No state branch yet: this run saves the baseline."
+          fi
+
+      - name: Run the pipeline
+        id: pipeline
+        env:
+          DATA_GOV_IN_API_KEY: ${{ secrets.DATA_GOV_IN_API_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          # Inputs go in through the environment, never pasted into the script.
+          POST_NOW: ${{ inputs.post_now }}
+          NOTE: ${{ inputs.note }}
+        run: |
+          args=()
+          if [ "$POST_NOW" = "true" ]; then args+=(--now); fi
+          if [ -n "$NOTE" ]; then args+=(--note "$NOTE"); fi
+          set +e
+          python fetch_mandi_prices.py "${args[@]}"
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          if [ -f site/index.html ]; then echo "site=yes" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Save the snapshot
+        if: hashFiles('state/prices.json') != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp state/prices.json "$RUNNER_TEMP/prices.json"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin state >/dev/null; then
+            git fetch --quiet --depth=1 origin state
+            git worktree add --quiet --detach "$RUNNER_TEMP/state" FETCH_HEAD
+          else
+            git worktree add --quiet --orphan -b state "$RUNNER_TEMP/state"
+          fi
+          cd "$RUNNER_TEMP/state"
+          mkdir -p state
+          cp "$RUNNER_TEMP/prices.json" state/prices.json
+          git add state/prices.json
+          if git diff --cached --quiet; then echo "Snapshot unchanged."; exit 0; fi
+          git commit --quiet -m "Snapshot $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push --quiet "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/heads/state
+
+      - name: Upload the pages
+        if: steps.pipeline.outputs.site == 'yes'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
+        with:
+          path: site
+
+      - name: Mark the run failed if the pipeline failed
+        if: steps.pipeline.outputs.code != '0'
+        env:
+          CODE: ${{ steps.pipeline.outputs.code }}
+        run: |
+          echo "::error::The pipeline exited with code $CODE. The run email says why; if no email came, read the 'Run the pipeline' step above."
+          exit 1
+
+  deploy:
+    needs: run
+    # Publish whenever pages were built, even if sending the email failed.
+    if: ${{ !cancelled() && needs.run.outputs.site == 'yes' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1
