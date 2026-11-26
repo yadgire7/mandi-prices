@@ -16,7 +16,9 @@ TEXT_KEYS = (
     "col_modal", "col_max", "col_change", "new_mark", "jump_mark", "all_districts", "index_counts",
     "glossary_title", "post_glossary", "tap_hint", "close",
     "post_header", "post_summary", "post_no_change", "post_crop_none", "post_links",
-    "post_footer", "post_channel",
+    "post_footer", "post_channel", "post_weather_title", "post_weather_storm",
+    "post_weather_heavy_rain", "post_weather_rain", "post_weather_heat", "post_weather_wind",
+    "post_weather_none", "post_weather_more", "post_weather_link",
 )
 RESERVED_SLUGS = {"other", "style"}
 
@@ -71,6 +73,16 @@ def validate_config(cfg) -> None:
         problems.append("fetch.days must be between 1 and 7")
     if not isinstance(keep, int) or not isinstance(days, int) or keep < days:
         problems.append("fetch.keep_days must be at least fetch.days")
+    wa = cfg.get("weather_alerts")
+    if wa is not None:
+        for key in ("url", "page_url"):
+            value = str(wa.get(key) or "")
+            if value and not re.fullmatch(r"https://[a-z0-9.-]+(/[a-z0-9._/-]*)?", value):
+                problems.append(f"weather_alerts.{key} must be empty or a plain https:// address")
+        for key in ("max_age_hours", "max_districts"):
+            value = wa.get(key)
+            if not (isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0):
+                problems.append(f"weather_alerts.{key} must be a positive number")
     fetcher = cfg.get("fetcher") or {}
     warn_h, fail_h = fetcher.get("warn_after_hours"), fetcher.get("fail_after_hours")
     if not all(isinstance(h, (int, float)) and h > 0 for h in (warn_h, fail_h)) or warn_h >= fail_h:

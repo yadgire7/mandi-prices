@@ -27,7 +27,7 @@ import sys
 import traceback
 from pathlib import Path
 
-from mandi import fetched, notify, pipeline
+from mandi import fetched, notify, pipeline, weather_alerts
 from mandi.api import ApiError, Client, canonical, load_api_key, parse_date
 from mandi.config import load_config
 
@@ -75,6 +75,8 @@ def parse_args(argv):
                    help="only fetch from data.gov.in and save the raw data (or the error) to FILE")
     p.add_argument("--from-fetched", type=Path, metavar="FILE",
                    help="a real run from data another machine fetched, with checks on its age")
+    p.add_argument("--no-weather", action="store_true",
+                   help="leave the weather alerts out of the post (no download)")
     p.add_argument("--test-email", action="store_true",
                    help="send one test email to check the mail settings; no API call, no pages")
     p.add_argument("--site", type=Path, help="where to build the pages")
@@ -172,9 +174,14 @@ def main(argv=None, environ=os.environ) -> int:
             if not key:
                 raise RuntimeError("no API key: set DATA_GOV_IN_API_KEY or add it to .env")
             source = pipeline.api_source(Client(key), cfg)
+        if args.dry_run or args.no_weather:
+            alerts, weather_note = None, "Weather alerts not read (dry run or --no-weather)."
+        else:
+            alerts, weather_note = weather_alerts.load(cfg, now)
         result = pipeline.run(cfg, source, pipeline.Options(
             now=now, site_dir=args.site, state_path=args.state,
-            force_post=args.now, note=args.note))
+            force_post=args.now, note=args.note, weather=alerts))
+        result.info.append(weather_note)
         report.status = "WARN" if result.status == "OK" and report.warnings else result.status
         report.post, report.summary = result.post, result.summary
         report.warnings += result.warnings

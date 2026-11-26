@@ -10,7 +10,7 @@ from mandi.rows import Price
 
 def build_post(cfg: dict, names: marathi.Names, latest: dict[tuple, tuple[Price, Price | None]],
                changed: set, change_count: int, district_count: int, now: dt.datetime,
-               note: str = "", jumps: set = frozenset()) -> str:
+               note: str = "", jumps: set = frozenset(), weather: list[str] = ()) -> str:
     text = cfg["text_mr"]
     lines = [text["post_header"].format(when=marathi.when(now, cfg.get("day_parts_mr")))]
     used_terms: dict[str, dict] = {}
@@ -52,6 +52,8 @@ def build_post(cfg: dict, names: marathi.Names, latest: dict[tuple, tuple[Price,
         lines += ["", f"*{names.crop(crop)}*"]
         lines += crop_lines or [f"• {text['post_crop_none']}"]
 
+    if weather:
+        lines += ["", *weather]
     lines.append("")
     base = str((cfg.get("site") or {}).get("base_url") or "").rstrip("/")
     if base:

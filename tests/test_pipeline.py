@@ -58,11 +58,11 @@ class Run:
         test.addCleanup(tmp.cleanup)
         self.dir = Path(tmp.name)
 
-    def __call__(self, records, at="07:00", cfg=CFG, force=False, note="", day=TODAY):
+    def __call__(self, records, at="07:00", cfg=CFG, force=False, note="", day=TODAY, weather=None):
         hh, mm = (int(x) for x in at.split(":"))
         opts = pipeline.Options(now=dt.datetime.combine(day, dt.time(hh, mm), IST),
                                 site_dir=self.dir / "site", state_path=self.dir / "state.json",
-                                force_post=force, note=note)
+                                force_post=force, note=note, weather=weather)
         source = records if callable(records) else (lambda today, r=records: copy.deepcopy(r))
         return pipeline.run(cfg, source, opts)
 
@@ -675,7 +675,7 @@ class FetchedDataTests(unittest.TestCase):
         with unittest.mock.patch("sys.stdout", new_callable=io.StringIO), \
                 unittest.mock.patch("sys.stderr", new_callable=io.StringIO):
             code = fetch_mandi_prices.main(
-                ["--from-fetched", str(self.file), "--no-email", "--at", at, "--out", str(out),
+                ["--from-fetched", str(self.file), "--no-email", "--no-weather", "--at", at, "--out", str(out),
                  "--site", str(self.dir / "site"), "--state", str(self.dir / "state.json"), *extra],
                 environ={})
         msg = email.message_from_bytes(sorted(out.glob("email-*.eml"))[-1].read_bytes(),
