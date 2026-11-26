@@ -16,7 +16,7 @@ TEXT_KEYS = (
     "col_modal", "col_max", "col_change", "new_mark", "jump_mark", "all_districts", "index_counts",
     "glossary_title", "post_glossary", "tap_hint", "close",
     "post_header", "post_summary", "post_no_change", "post_crop_none", "post_links",
-    "post_footer", "post_channel", "post_weather_title", "post_weather_storm",
+    "post_footer", "post_channel", "post_weather_header", "post_weather_title", "post_weather_storm",
     "post_weather_heavy_rain", "post_weather_rain", "post_weather_heat", "post_weather_wind",
     "post_weather_none", "post_weather_more", "post_weather_link",
 )

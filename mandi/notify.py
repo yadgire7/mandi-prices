@@ -16,8 +16,18 @@ from pathlib import Path
 
 SECRET_ENV = ("DATA_GOV_IN_API_KEY", "SMTP_PASSWORD")
 MAIL_ENV = ("SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD", "MAIL_FROM", "MAIL_TO")
-POST_START = "----- WhatsApp post: copy from the next line -----"
-POST_END = "----- end of post -----"
+# The admin picks which message to paste: weather only, prices only, or both.
+POST_LABELS = {"weather": "WEATHER only", "prices": "MANDI PRICES only",
+               "both": "BOTH (prices + weather)"}
+POST_ORDER = ("weather", "prices", "both")
+
+
+def post_start(n: int, kind: str) -> str:
+    return f"----- {n}) {POST_LABELS[kind]}: copy from the next line -----"
+
+
+def post_end(kind: str) -> str:
+    return f"----- end of {POST_LABELS[kind]} -----"
 
 
 class MailError(Exception):
@@ -32,7 +42,8 @@ class NotConfigured(Exception):
 class Report:
     status: str                      # OK, WARN or FAIL
     when: str                        # "25 Nov 2026 07:00 IST"
-    post: str | None = None
+    post: str | None = None          # kept for older callers: the prices message
+    posts: dict[str, str] = field(default_factory=dict)
     summary: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     info: list[str] = field(default_factory=list)
@@ -49,7 +60,8 @@ def scrub(text: str, env=os.environ) -> str:
 
 
 def subject(report: Report) -> str:
-    extra = " - post ready" if report.post else ""
+    kinds = [k for k in POST_ORDER if report.posts.get(k)] or (["prices"] if report.post else [])
+    extra = f" - ready to post: {', '.join(kinds)}" if kinds else ""
     tag = f"[{report.tag}] " if report.tag else ""
     return f"{tag}[{report.status}] Mandi prices {report.when}{extra}"
 
@@ -58,8 +70,14 @@ def body(report: Report, max_warnings: int = 40) -> str:
     out = [f"Status: {report.status}", f"Run: {report.when}", ""]
     if report.summary:
         out += report.summary + [""]
-    if report.post:
-        out += [POST_START, report.post.rstrip("\n"), POST_END, ""]
+    posts = {k: report.posts[k] for k in POST_ORDER if report.posts.get(k)}
+    if not posts and report.post:
+        posts = {"prices": report.post}
+    if posts:
+        out.append("Choose ONE message to paste into the channel:")
+        out.append("")
+        for n, (kind, text) in enumerate(posts.items(), 1):
+            out += [post_start(n, kind), text.rstrip("\n"), post_end(kind), ""]
     else:
         out += ["No post this run.", ""]
     if report.warnings:

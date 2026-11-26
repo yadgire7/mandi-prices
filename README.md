@@ -37,6 +37,18 @@ district names reach the post. If the file is missing, broken or more than 6
 hours old, the block is left out and the email says why; the run carries on.
 Settings: `weather_alerts` in `config.yaml`; `--no-weather` skips it.
 
+**The admin chooses what to post.** Each email offers up to three ready-to-paste
+messages, numbered, each between its own markers:
+
+1. **Weather only**: the alert block and the weather link. Offered on every run
+   with fresh alerts, even when no price changed.
+2. **Mandi prices only**: the price post without the weather block.
+3. **Both**: the price post with the weather block.
+
+Prices and both appear when a price post is due (new prices, the first run
+after 06:00, or `--now`). The admin's note goes into all of them. Each message
+is also saved as `out/post-<time>-<weather|prices|both>.txt`.
+
 ## What one run does
 
 1. Fetches Maharashtra prices for today and yesterday (t and t-1) from
@@ -108,7 +120,7 @@ saved file (what GitHub does).
 ./.venv/bin/python -m unittest discover -s tests
 ```
 
-Runs the 90 tests, with no network or key needed.
+Runs the 95 tests, with no network or key needed.
 
 Every run saves its email as `out/email-<time>.eml` and its post as
 `out/post-<time>.txt`, and adds one line to `out/runs.tsv`: prices fetched,

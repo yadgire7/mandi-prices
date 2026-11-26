@@ -1,4 +1,5 @@
-"""The short Marathi WhatsApp post: what changed, the headline crops, the links."""
+"""The Marathi WhatsApp posts: prices (what changed, the headline crops, the
+links), weather only (the alert block), or both in one message."""
 from __future__ import annotations
 
 import datetime as dt
@@ -63,4 +64,16 @@ def build_post(cfg: dict, names: marathi.Names, latest: dict[tuple, tuple[Price,
         lines.append(text["post_glossary"].format(term=term, name=info["name"]))
     if text.get("post_channel"):
         lines.append(text["post_channel"])
+    return "\n".join(lines).strip() + "\n"
+
+
+def build_weather_post(cfg: dict, now: dt.datetime, weather: list[str], note: str = "") -> str:
+    """The weather-only message: a header, the admin's note, the alert block, the channel."""
+    text = cfg["text_mr"]
+    lines = [text["post_weather_header"].format(when=marathi.when(now, cfg.get("day_parts_mr")))]
+    if note:
+        lines += ["", note]
+    lines += ["", *weather]
+    if text.get("post_channel"):
+        lines += ["", text["post_channel"]]
     return "\n".join(lines).strip() + "\n"
