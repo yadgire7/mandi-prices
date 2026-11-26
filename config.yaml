@@ -263,6 +263,7 @@ text_mr:
   post_footer: "भाव रु./क्विंटल (१०० किलो), घाऊक, प्रचलित भाव. विक्रीपूर्वी आपल्या बाजार समितीत खात्री करा."
   post_glossary: "{term} = {name}"
   post_channel: "📺 शेतकरी शाळा YouTube: https://www.youtube.com/@shetkarishalaMH"
+  post_weather_header: "हवामान अपडेट: {when}"
   post_weather_title: "हवामान इशारे (पुढील २४ तास, कंसात तालुके)"
   post_weather_storm: "⛈️ विजांसह वादळी पाऊस"
   post_weather_heavy_rain: "🌧️ जोरदार पाऊस"

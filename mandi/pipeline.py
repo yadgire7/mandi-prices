@@ -33,6 +33,9 @@ class Result:
     warnings: list[str] = field(default_factory=list)
     info: list[str] = field(default_factory=list)
     stats: dict = field(default_factory=dict)  # one line of the run log (runs.tsv)
+    # Ready-to-paste messages, in the order the email shows them:
+    # "weather" (alerts only), "prices" (no weather), "both" (prices + weather).
+    posts: dict[str, str] = field(default_factory=dict)
 
 
 def clean_note(note: str) -> str:
@@ -175,10 +178,17 @@ def run(cfg: dict, source: Callable[[dt.date], list[dict]], opts: Options) -> Re
     first = is_first_run_window(now, cfg["schedule"]["first_run_ist"]) and \
         snap.last_post_date != today.isoformat()
     want_post = bool(changed_keys) or first or opts.force_post
+    weather_lines = weather_alerts.post_lines(opts.weather, cfg)
+    note = clean_note(opts.note)
+    if weather_lines:          # the weather message is offered on every run with fresh alerts
+        result.posts["weather"] = post.build_weather_post(cfg, now, weather_lines, note)
     if want_post:
-        result.post = post.build_post(cfg, names, latest, changed_keys, len(changed_keys),
-                                      len(changed_districts), now, clean_note(opts.note), jumps,
-                                      weather=weather_alerts.post_lines(opts.weather, cfg))
+        prices = lambda weather: post.build_post(cfg, names, latest, changed_keys, len(changed_keys),
+                                                 len(changed_districts), now, note, jumps, weather=weather)
+        result.posts["prices"] = prices(())
+        if weather_lines:
+            result.posts["both"] = prices(weather_lines)
+        result.post = result.posts.get("both") or result.posts["prices"]
     result.summary.append(
         f"{len(new)} new and {len(changed)} corrected prices from {len(changed_districts)} districts."
         if changed_keys else ("First run: baseline saved." if not snap.exists

@@ -546,7 +546,21 @@ class NotifyTests(unittest.TestCase):
 
     def test_body_holds_post_between_markers(self):
         body = notify.body(self.report())
-        self.assertIn(notify.POST_START + "\nपोस्ट\n" + notify.POST_END, body)
+        self.assertIn(notify.post_start(1, "prices") + "\nपोस्ट\n" + notify.post_end("prices"), body)
+
+    def test_body_offers_each_message_numbered_in_order(self):
+        r = notify.Report(status="OK", when="26 Nov 2026 12:00 IST",
+                          posts={"both": "B\n", "weather": "W\n", "prices": "P\n"})
+        body = notify.body(r)
+        self.assertIn("Choose ONE message", body)
+        self.assertLess(body.index(notify.post_start(1, "weather") + "\nW\n"),
+                        body.index(notify.post_start(2, "prices") + "\nP\n"))
+        self.assertLess(body.index(notify.post_start(2, "prices")),
+                        body.index(notify.post_start(3, "both") + "\nB\n"))
+        self.assertTrue(notify.subject(r).endswith("- ready to post: weather, prices, both"))
+        only = notify.Report(status="OK", when="x", posts={"weather": "W\n"})
+        self.assertIn(notify.post_start(1, "weather"), notify.body(only))
+        self.assertTrue(notify.subject(only).endswith("- ready to post: weather"))
 
     def test_send_uses_tls_and_logs_in(self):
         calls = []

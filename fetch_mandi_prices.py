@@ -183,7 +183,7 @@ def main(argv=None, environ=os.environ) -> int:
             force_post=args.now, note=args.note, weather=alerts))
         result.info.append(weather_note)
         report.status = "WARN" if result.status == "OK" and report.warnings else result.status
-        report.post, report.summary = result.post, result.summary
+        report.post, report.posts, report.summary = result.post, result.posts, result.summary
         report.warnings += result.warnings
         report.info = result.info
         stats = result.stats
@@ -197,8 +197,8 @@ def main(argv=None, environ=os.environ) -> int:
         report.summary.insert(0, "SHADOW RUN (trial week): check this email, but do not post it to the channel.")
     stamp = now.strftime("%Y%m%d-%H%M")
     saved = notify.save(report, args.out / f"email-{stamp}.eml", env)
-    if report.post:
-        (args.out / f"post-{stamp}.txt").write_text(report.post, encoding="utf-8")
+    for kind, text in report.posts.items():
+        (args.out / f"post-{stamp}-{kind}.txt").write_text(text, encoding="utf-8")
     print(notify.scrub(notify.subject(report), env))
     print(notify.scrub(notify.body(report), env))
 

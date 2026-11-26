@@ -116,5 +116,58 @@ class PostBlockTests(unittest.TestCase):
         self.assertNotIn(self.text["post_weather_title"], Run(self)(base_records(), at="12:00").post)
 
 
+
+class MessageChoiceTests(unittest.TestCase):
+    """The admin can paste weather only, prices only, or both."""
+    text = CFG["text_mr"]
+
+    def alerts(self):
+        return wa.parse(body({"latur": {"rain": ["ausa", "udgir"]}}), SLUGS)
+
+    def test_three_versions_when_prices_and_alerts_are_ready(self):
+        posts = Run(self)(base_records(), at="12:00", weather=self.alerts(), note="नवीन व्हिडिओ").posts
+        self.assertEqual(list(posts), ["weather", "prices", "both"])
+        title, crop = self.text["post_weather_title"], "*तूर*"
+        self.assertIn(title, posts["weather"])
+        self.assertNotIn(crop, posts["weather"])
+        self.assertTrue(posts["weather"].startswith(self.text["post_weather_header"].split("{")[0]))
+        self.assertIn(crop, posts["prices"])
+        self.assertNotIn(title, posts["prices"])
+        self.assertIn(crop, posts["both"])
+        self.assertIn(title, posts["both"])
+        for kind, text in posts.items():
+            with self.subTest(kind):
+                self.assertIn("नवीन व्हिडिओ", text)
+                self.assertTrue(text.rstrip().endswith(self.text["post_channel"]))
+
+    def test_no_alerts_means_prices_only(self):
+        posts = Run(self)(base_records(), at="12:00").posts
+        self.assertEqual(list(posts), ["prices"])
+
+    def test_weather_is_offered_even_when_prices_did_not_change(self):
+        run = Run(self)
+        run(base_records(), at="07:00")                       # morning post already made
+        result = run(base_records(), at="13:00", weather=self.alerts())
+        self.assertEqual(list(result.posts), ["weather"])
+        self.assertIsNone(result.post)
+
+    def test_cli_saves_each_version_to_its_own_file(self):
+        import tempfile
+        from unittest import mock
+        import fetch_mandi_prices
+        from mandi import fetched
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            fetched.write(tmp / "p.json.gz", NOW - dt.timedelta(minutes=10), base_records())
+            with mock.patch.object(wa, "load", return_value=(self.alerts(), "note")), \
+                    mock.patch("sys.stdout"), mock.patch("sys.stderr"):
+                fetch_mandi_prices.main(["--from-fetched", str(tmp / "p.json.gz"), "--no-email",
+                                         "--at", "2026-11-26T12:00", "--now", "--out", str(tmp / "out"),
+                                         "--site", str(tmp / "site"), "--state", str(tmp / "s.json")],
+                                        environ={})
+            names = sorted(f.name.split("-")[-1] for f in (tmp / "out").glob("post-*.txt"))
+        self.assertEqual(names, ["both.txt", "prices.txt", "weather.txt"])
+
+
 if __name__ == "__main__":
     unittest.main()
