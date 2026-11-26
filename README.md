@@ -25,6 +25,18 @@ old (WARN after 2 hours, FAIL after 12). If data.gov.in rejects the key on the
 Mac, the error travels with the data and the email says so. To move the fetch
 to an always-on machine in India later, run `scripts/fetcher.sh install` there.
 
+## Weather alerts in the post
+
+The weather site ([yadgire7/havaman](https://github.com/yadgire7/havaman),
+havaman.shetkarishala.com) publishes `alerts.json` every 4 hours, half an hour
+before each price run. Each run downloads it and adds a short block after the
+prices: one line per alert kind (storm, heavy rain, rain likely, heat, strong
+wind) with the districts and how many talukas, most talukas first, at most 8
+districts a line, and a link to the weather pages. Only counts and our own
+district names reach the post. If the file is missing, broken or more than 6
+hours old, the block is left out and the email says why; the run carries on.
+Settings: `weather_alerts` in `config.yaml`; `--no-weather` skips it.
+
 ## What one run does
 
 1. Fetches Maharashtra prices for today and yesterday (t and t-1) from
@@ -96,7 +108,7 @@ saved file (what GitHub does).
 ./.venv/bin/python -m unittest discover -s tests
 ```
 
-Runs the 79 tests, with no network or key needed.
+Runs the 90 tests, with no network or key needed.
 
 Every run saves its email as `out/email-<time>.eml` and its post as
 `out/post-<time>.txt`, and adds one line to `out/runs.tsv`: prices fetched,
@@ -238,6 +250,7 @@ Actions tab. Watch for that email.
 | `names_produce_mr.yaml` | The produce glossary: Marathi names for every commodity and variety |
 | `probe_api.py` | The Phase 0 probe |
 | `scripts/fetcher.sh` | The Mac's fetch-and-push schedule (macOS launchd) |
+| `mandi/weather_alerts.py` | Reads the weather site's alerts.json and writes the post's weather block |
 | `mandi/fetched.py` | The fetched-data file: written on the Mac, read and age-checked on GitHub |
 | `scripts/check_setup.sh` | Checks `.env`, the API key, the mail settings and the GitHub secrets |
 | `tests/` | Tests for the pipeline and the probe |

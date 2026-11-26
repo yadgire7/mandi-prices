@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from mandi import marathi, pages, post, rows, state
+from mandi import marathi, pages, post, rows, state, weather_alerts
 from mandi.api import ApiError, Client, canonical, norm
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30), "IST")
@@ -22,6 +22,7 @@ class Options:
     force_post: bool = False
     note: str = ""
     save_state: bool = True
+    weather: object = None           # weather_alerts.Alerts, or None to leave the block out
 
 
 @dataclass
@@ -176,7 +177,8 @@ def run(cfg: dict, source: Callable[[dt.date], list[dict]], opts: Options) -> Re
     want_post = bool(changed_keys) or first or opts.force_post
     if want_post:
         result.post = post.build_post(cfg, names, latest, changed_keys, len(changed_keys),
-                                      len(changed_districts), now, clean_note(opts.note), jumps)
+                                      len(changed_districts), now, clean_note(opts.note), jumps,
+                                      weather=weather_alerts.post_lines(opts.weather, cfg))
     result.summary.append(
         f"{len(new)} new and {len(changed)} corrected prices from {len(changed_districts)} districts."
         if changed_keys else ("First run: baseline saved." if not snap.exists

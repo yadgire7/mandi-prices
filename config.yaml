@@ -118,6 +118,15 @@ fetch:
   days: 2        # days fetched, counting today: 2 = today (t) and yesterday (t-1)
   keep_days: 2   # days kept and shown, counting today: 2 = only t and t-1
 
+# Weather alerts in the post, from the weather site (yadgire7/havaman), which
+# publishes alerts.json every 4 hours. Only counts and our own district names
+# reach the post. Old or unreadable alerts are left out, never fatal.
+weather_alerts:
+  url: "https://havaman.shetkarishala.com/alerts.json"   # empty switches it off
+  page_url: "https://havaman.shetkarishala.com/"
+  max_age_hours: 6       # older alerts are left out of the post
+  max_districts: 8       # per line; the rest become "+ N जिल्हे"
+
 # data.gov.in refuses GitHub's servers (outside India), so a machine in India
 # fetches the prices and pushes them to the `data` branch; GitHub processes
 # them. These limits decide when the run email complains that the data is old.
@@ -254,3 +263,12 @@ text_mr:
   post_footer: "भाव रु./क्विंटल (१०० किलो), घाऊक, प्रचलित भाव. विक्रीपूर्वी आपल्या बाजार समितीत खात्री करा."
   post_glossary: "{term} = {name}"
   post_channel: "📺 शेतकरी शाळा YouTube: https://www.youtube.com/@shetkarishalaMH"
+  post_weather_title: "हवामान इशारे (पुढील २४ तास, कंसात तालुके)"
+  post_weather_storm: "⛈️ विजांसह वादळी पाऊस"
+  post_weather_heavy_rain: "🌧️ जोरदार पाऊस"
+  post_weather_rain: "☔ पावसाची शक्यता"
+  post_weather_heat: "🌡️ उष्णता (४०°+)"
+  post_weather_wind: "💨 जोरदार वारे, फवारणी टाळा"
+  post_weather_none: "पुढील २४ तासांत विशेष इशारा नाही."
+  post_weather_more: "+ {n} जिल्हे"
+  post_weather_link: "तालुकानिहाय हवामान: {url}"
